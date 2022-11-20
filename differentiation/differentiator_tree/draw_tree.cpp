@@ -21,9 +21,10 @@ static void Draw_node_data (FILE *fpout, Differentiator_node* node);
 
 //======================================================================================
 
-int Draw_tree_graph (const Tree *tree, const int node_mode)
+int Draw_tree_graph (const Tree *tree, const char* name_output_file, const int node_mode)
 {
     assert (tree != nullptr && "tree is nullptr");
+    assert (name_output_file != nullptr && "name output file is nullptr");
 
     FILE *graph = Open_file_ptr ("temp/graph_img/graph.txt", "w");
     if (Check_nullptr (graph))
@@ -44,13 +45,6 @@ int Draw_tree_graph (const Tree *tree, const int node_mode)
     fprintf(graph, "}\n}\n");
     fclose(graph);
 
-    
-    static int Cnt_graphs = 0;      //<-To display the current tree view
-
-    char name_output_file[Max_command_buffer] = {0};
-    sprintf (name_output_file, "graph_img/picture%d.png", Cnt_graphs); 
-
-    Cnt_graphs++;
 
 
     char command_buffer[Max_command_buffer] = {0};
@@ -160,27 +154,27 @@ static void Draw_node (FILE *fpout, const Node *node, const int id, const int no
 static void Draw_node_data (FILE *fpout, Differentiator_node* node)
 {
     assert (fpout != nullptr && "fpout is nullptr");
-    assert (node  != nullptr && " node is nullptr");
+    //assert (node  != nullptr && "Differentiator_node is nullptr");
+    if (node != nullptr)
+        switch (node->node_type)
+        {
+            case VALUE_T:
+                fprintf (fpout, "{NODE TYPE: VAL| %lg}", node->data.val);
+                break;
 
-    switch (node->node_type)
-    {
-        case VALUE_T:
-            fprintf (fpout, "{NODE TYPE: VAL| %lg}", node->data.val);
-            break;
+            case VARIABLE_T:
+                fprintf (fpout, "{NODE TYPE: VAR| %s}", node->data.var);
+                break;
 
-        case VARIABLE_T:
-            fprintf (fpout, "{NODE TYPE: VAR| %s}", node->data.var);
-            break;
+            case OPERATION_T:
+                fprintf (fpout, "{NODE TYPE: OP| %d}", node->data.operation);
+                break;
 
-        case OPERATION_T:
-            fprintf (fpout, "{NODE TYPE: OP| %d}", node->data.operation);
-            break;
-
-        case UNKNOWN_T: [[fallthrough]]
-        default:
-            fprintf (fpout, "{NODE TYPE: UNKNOWN| UNKNOWN}");
-            break;
-    }
+            case UNKNOWN_T: [[fallthrough]]
+            default:
+                fprintf (fpout, "{NODE TYPE: UNKNOWN| UNKNOWN}");
+                break;
+        }
 
     return;
 }

@@ -12,16 +12,8 @@
 
 //======================================================================================
 
-Node* Create_differentiatoer_node ()
+Differentiator_node* Create_differentiatoer_node ()
 {
-    Node* node = Create_node ();
-
-    if (Check_nullptr (node))
-    {
-        PROCESS_ERROR (CREATE_EMPTY_NODE_ERR, "Memory allocation error, node nullptr\n");
-        return nullptr;
-    }
-
     Differentiator_node *differentiator_node = (Differentiator_node*) calloc (1, sizeof (Differentiator_node)); 
     if (Check_nullptr (differentiator_node))
     {
@@ -35,71 +27,80 @@ Node* Create_differentiatoer_node ()
     differentiator_node->data.val       = 0;
     differentiator_node->data.var       = nullptr;
 
-    node->data = differentiator_node;
-
-    return node;
+    return differentiator_node;
 }
 
 //======================================================================================
 
-Node* Get_operation_node (Differentiator_operation operation)
+int Get_operation_node (Node *node, Differentiator_operation operation)
 {
-    Node* node = Create_differentiatoer_node ();
+    assert (node != nullptr && "node is nullptr");
 
-    if (Check_nullptr (node))
+    Differentiator_node* node_data = Create_differentiatoer_node ();
+
+    if (Check_nullptr (node_data))
     {
         PROCESS_ERROR (GET_OPERATION_NODE_ERR, "Memory allocation error, node nullptr\n");
-        return nullptr;
+        return GET_OPERATION_NODE_ERR;
     }
 
 
-    ((Differentiator_node*) node->data)->node_type = OPERATION_T;
+    node_data->node_type = OPERATION_T;
 
-    ((Differentiator_node*) node->data)->data.operation = operation;
+    node_data->data.operation = operation;
 
-    return node;
+    node->data = node_data;
+
+    return 0;
 }
 
 //======================================================================================
 
-Node* Get_value_node (double value)
+int Get_value_node (Node *node, double value)
 {
-    Node* node = Create_differentiatoer_node ();
+    assert (node != nullptr && "node is nullptr");
+    
+    Differentiator_node* node_data = Create_differentiatoer_node ();
 
-    if (Check_nullptr (node))
+    if (Check_nullptr (node_data))
     {
-        PROCESS_ERROR (GET_VALUE_NODE_ERR, "Memory allocation error, node nullptr\n");
-        return nullptr;
+        PROCESS_ERROR (GET_OPERATION_NODE_ERR, "Memory allocation error, node nullptr\n");
+        return GET_OPERATION_NODE_ERR;
     }
 
 
-    ((Differentiator_node*) node->data)->node_type = VALUE_T;
+    node_data->node_type = VALUE_T;
 
-    ((Differentiator_node*) node->data)->data.val = value;
+    node_data->data.val = value;
 
-    return node;
+    node->data = node_data;
+
+    return 0;
 }
 
 //======================================================================================
 
-Node* Get_variable_node (const char* name_variable)
+int Get_variable_node (Node *node, const char* name_variable)
 {   
+    assert (node != nullptr && "node is nullptr");
     assert (name_variable != nullptr && "name_variable is nullptr");
+    
+    Differentiator_node* node_data = Create_differentiatoer_node ();
 
-    Node* node = Create_differentiatoer_node ();
-
-    if (Check_nullptr (node))
+    if (Check_nullptr (node_data))
     {
-        PROCESS_ERROR (GET_VARIABLE_NODE_ERR, "Memory allocation error, node nullptr\n");
-        return nullptr;
+        PROCESS_ERROR (GET_OPERATION_NODE_ERR, "Memory allocation error, node nullptr\n");
+        return GET_OPERATION_NODE_ERR;
     }
 
 
-    ((Differentiator_node*) node->data)->node_type = VARIABLE_T;
+    node_data->node_type = VARIABLE_T;
 
-    ((Differentiator_node*) node->data)->data.var = name_variable;
+    node_data->data.var = name_variable;
 
-    return node;
+    node->data = node_data;
+
+    return 0;
 }
 
 //======================================================================================

@@ -53,11 +53,20 @@ int Process_error_ (const char* error_name, const int error_val,
     #ifdef USE_LOG
     
         vfprintf(fp_logs, format, args);
+        
         fprintf (fp_logs, "==========================================================\n\n\n");
     
     #endif
 
-    Err_report_ (file_name, func_name, line, format, args);
+    fprintf (stderr, "||ERROR ERROR ERROR||\n");
+
+    fprintf (stderr, "In file %s, ", file_name);
+    fprintf (stderr, "In function %s, ", func_name);
+    fprintf (stderr, "In line %d: ", line);
+
+    vfprintf(stderr, format, args);
+
+    fprintf (stderr, "\n\n");
     
     va_end(args);
     

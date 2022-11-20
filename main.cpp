@@ -16,7 +16,40 @@ int main (int argc, char *argv[])
         if (Open_logs_file ())
             return OPEN_FILE_LOG_ERR;
 
-    #endif 
+    #endif
+
+    Differentiator_struct expression = {};
+
+    if (Differentiator_struct_ctor (&expression))
+        return PROCESS_ERROR (DIFFERENTIATOR_CTOR_ERR, 
+                              "Ctor Differentiator struct in main\n");
+
+
+    switch (argc)
+    {
+        case 1:
+            printf ("No file to read.\nSpecify the file from which you want to read\n");
+            return 0;
+
+        case 2:
+        {
+            Load_database (&expression, argv[1]);
+            break;
+        }
+
+        default:
+            Log_report ("Too many command line arguments\n");
+            Err_report ("Too many command line arguments\n");
+            return -1;
+    }
+
+
+    Print_database (&expression.tree);    
+
+
+    if (Differentiator_struct_dtor (&expression))
+        return PROCESS_ERROR (DIFFERENTIATOR_DTOR_ERR, 
+                              "Dtor Differentiator struct in main\n");
     
     
     #ifdef USE_LOG

@@ -13,7 +13,7 @@ build:  obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o
 		obj/differentiator.o obj/draw_tree.o obj/differentiator_tree.o  	
 
 	g++ obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
-		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o -o differentiatior
+		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o -o differ
 
 
 obj/main.o: main.cpp

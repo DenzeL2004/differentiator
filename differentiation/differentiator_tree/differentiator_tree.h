@@ -43,15 +43,15 @@ enum Differentiator_node_func_err
  * @brief  Creates an empty tree node 
  * @return Node* pointer to the created node
  */
-Node* Create_differentiatoer_node ();
+Differentiator_node* Create_differentiatoer_node ();
 
 
 
-Node* Get_operation_node (Differentiator_operation operation);
+int Get_operation_node (Node *node, Differentiator_operation operation);
 
-Node* Get_value_node (double value);
+int Get_value_node (Node *node, double value);
 
-Node* Get_variable_node (const char* nmae_variable);
+int Get_variable_node (Node *node, const char* nmae_variable);
 
 
 /** 
