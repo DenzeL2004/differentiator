@@ -117,6 +117,25 @@ int Delete_node (Node *node)
 
 //======================================================================================
 
+Node *Tree_copy(Node *node)
+{
+    assert (node != nullptr && "node is nullptr");
+
+    Node *node_cpy = Create_node();
+    *node_cpy = *node;
+
+
+    if (!Check_nullptr (node->left))
+        Tree_copy(node->left);
+    
+    if (!Check_nullptr (node->right))
+        Tree_copy(node->right);
+
+    return node_cpy;
+}
+
+//======================================================================================
+
 int Is_leaf_node (const Node *node)
 {
     assert (node != nullptr && "node is nullptr");

@@ -71,8 +71,8 @@ static int _Read_file_to_buffer (int fdin, Text_info *text)
         return ERR_FILE_READING;
     }
 
-    if (*(text->text_buf + real_read_char - 1) != '\n')                               
-        *(text->text_buf + real_read_char) = '\n';   
+    if (*(text->text_buf + real_read_char - 1) != '\0')                               
+        *(text->text_buf + real_read_char) = '\0';   
 
 
     return 0;

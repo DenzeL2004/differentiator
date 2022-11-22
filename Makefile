@@ -10,10 +10,10 @@ DIR_TREE = src/tree
 DIR		 = differentiation
 
 build:  obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
-		obj/differentiator.o obj/draw_tree.o obj/differentiator_tree.o  	
+		obj/differentiator.o obj/draw_tree.o obj/differentiator_tree.o obj/reader.o	
 
 	g++ obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
-		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o -o differ
+		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o obj/reader.o -o differ
 
 
 obj/main.o: main.cpp
@@ -26,7 +26,6 @@ obj/differentiator.o: $(DIR)/differentiator.cpp $(DIR)/differentiator.h 				\
 
 
 
-
 obj/differentiator_tree.o: $(DIR)/differentiator.h 		  $(DIR)/differentiator_tree/differentiator_tree.cpp  	\
 						   $(DIR)/differentiator_config.h  $(DIR)/differentiator_tree/differentiator_tree.h		
 	g++ $(DIR)/differentiator_tree/differentiator_tree.cpp -c -o obj/differentiator_tree.o $(FLAGS)
@@ -35,6 +34,10 @@ obj/differentiator_tree.o: $(DIR)/differentiator.h 		  $(DIR)/differentiator_tre
 obj/draw_tree.o:  $(DIR)/differentiator_tree/differentiator_tree.cpp $(DIR)/differentiator_tree/draw_tree.cpp 	\
 				  $(DIR)/differentiator_tree/differentiator_tree.h   $(DIR)/differentiator_tree/draw_tree.h	  	
 	g++ $(DIR)/differentiator_tree/draw_tree.cpp -c -o obj/draw_tree.o $(FLAGS)
+
+
+obj/reader.o:  $(DIR)/differentiator_reader/reader.cpp $(DIR)/differentiator_reader/reader.h
+	g++ $(DIR)/differentiator_reader/reader.cpp -c -o obj/reader.o $(FLAGS)
 
 
 

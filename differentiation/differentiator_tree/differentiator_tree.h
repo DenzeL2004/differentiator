@@ -24,7 +24,7 @@ struct Differentiator_node
     {
         double                   val;
         const char*              var;
-        Differentiator_operation operation;
+        int                operation;
     } data;
 };
 
@@ -47,11 +47,11 @@ Differentiator_node* Create_differentiatoer_node ();
 
 
 
-int Get_operation_node (Node *node, Differentiator_operation operation);
+int Get_operation_node (Node *node, int operation);
 
-int Get_value_node (Node *node, double value);
+int Get_value_node     (Node *node, double value);
 
-int Get_variable_node (Node *node, const char* nmae_variable);
+int Get_variable_node  (Node *node, const char* nmae_variable);
 
 
 /** 

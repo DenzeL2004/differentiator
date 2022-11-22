@@ -14,8 +14,7 @@ enum Differentiator_func_err
     SAVING_DATABASE_ERR     = -3,
     SAVING_NODE_ERR         = -4,
 
-    READ_DATABASE_ERR       = -5,
-    READ_NODE_ERR           = -6,
+    LOAD_DATABASE_ERR       = -5,
 
     DRAW_DATABASE_ERR       = -7,
 };
@@ -23,7 +22,8 @@ enum Differentiator_func_err
 
 struct Differentiator_struct
 {
-    char *database = nullptr;
+    const char *input_database = nullptr;
+          char *copy_database  = nullptr;
 
     Tree tree = {};
 };

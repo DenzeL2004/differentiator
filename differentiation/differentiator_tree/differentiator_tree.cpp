@@ -9,7 +9,6 @@
 #include "../../src/log_info/log_errors.h"
 #include "../../src/Generals_func/generals.h"
 
-
 //======================================================================================
 
 Differentiator_node* Create_differentiatoer_node ()
@@ -32,7 +31,7 @@ Differentiator_node* Create_differentiatoer_node ()
 
 //======================================================================================
 
-int Get_operation_node (Node *node, Differentiator_operation operation)
+int Get_operation_node (Node *node, int operation)
 {
     assert (node != nullptr && "node is nullptr");
 

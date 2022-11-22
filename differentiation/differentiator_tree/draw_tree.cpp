@@ -154,27 +154,28 @@ static void Draw_node (FILE *fpout, const Node *node, const int id, const int no
 static void Draw_node_data (FILE *fpout, Differentiator_node* node)
 {
     assert (fpout != nullptr && "fpout is nullptr");
-    //assert (node  != nullptr && "Differentiator_node is nullptr");
-    if (node != nullptr)
-        switch (node->node_type)
-        {
-            case VALUE_T:
-                fprintf (fpout, "{NODE TYPE: VAL| %lg}", node->data.val);
-                break;
+    assert (node  != nullptr && "Differentiator_node is nullptr");
+    
 
-            case VARIABLE_T:
-                fprintf (fpout, "{NODE TYPE: VAR| %s}", node->data.var);
-                break;
+    switch (node->node_type)
+    {
+        case VALUE_T:
+            fprintf (fpout, "{NODE TYPE: VAL| %lg}", node->data.val);
+            break;
 
-            case OPERATION_T:
-                fprintf (fpout, "{NODE TYPE: OP| %d}", node->data.operation);
-                break;
+        case VARIABLE_T:
+            fprintf (fpout, "{NODE TYPE: VAR| %s}", node->data.var);
+            break;
 
-            case UNKNOWN_T: [[fallthrough]]
-            default:
-                fprintf (fpout, "{NODE TYPE: UNKNOWN| UNKNOWN}");
-                break;
-        }
+        case OPERATION_T:
+            fprintf (fpout, "{NODE TYPE: OP| %s}", Name_operations[node->data.operation]);
+            break;
+
+        case UNKNOWN_T: [[fallthrough]]
+        default:
+            fprintf (fpout, "{NODE TYPE: UNKNOWN| UNKNOWN}");
+            break;
+    }
 
     return;
 }

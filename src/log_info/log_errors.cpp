@@ -102,20 +102,20 @@ int Log_report_ (const char* file_name, const char* func_name, int line, const c
 
 //=======================================================================================================
 
-int Err_report_ (const char* file_name, const char* func_name, const int line, const char *format, ...) 
+int Err_report_ (const char* file_name, const char* func_name, int line, const char *format, ...) 
 { 
 
     fprintf (stderr, "||ERROR ERROR ERROR||\n");
 
-    fprintf (stderr, "In file %s, ", file_name);
-    fprintf (stderr, "In function %s, ", func_name);
+    fprintf (stderr, "In file %s\n", file_name);
+    fprintf (stderr, "In function %s\n", func_name);
     fprintf (stderr, "In line %d\n\n", line);
-
+    
     va_list args = {0};
    
     va_start(args, format);
 
-    vfprintf(fp_logs, format, args);
+    vfprintf(stderr, format, args);
     
     va_end(args);
     

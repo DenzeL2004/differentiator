@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <ctype.h> 
 
 
 #include "differentiator.h"
 #include "differentiator_tree/draw_tree.h"
+#include "differentiator_reader/reader.h"
 
 
 #include "../src/log_info/log_errors.h"
@@ -20,8 +22,18 @@ static int Read_expression_from_buffer (Node *node, Text_info *text);
 
 static int Read_node_from_buffer (Node *node, Text_info *text);
 
-/*
 
+static int Determine_node_type (Node *node, const char* str);
+
+static int Node_is_val       (const char* str);
+
+static int Node_is_var       (const char* str);
+
+static int Node_is_operation (const char *str);
+
+
+
+/*
 
 static int Save_expression_to_file (const Node *node, FILE *fpout);
 
@@ -37,7 +49,8 @@ int Differentiator_struct_ctor (Differentiator_struct *expression)
         return PROCESS_ERROR (TREE_CTOR_ERR, "Ctor expression's tree"
                                              " in differentiator ctor\n");
    
-    expression->database = nullptr;
+    expression->input_database = nullptr;
+    expression->copy_database = nullptr;
 
     return 0;
 }
@@ -52,10 +65,20 @@ int Differentiator_struct_dtor (Differentiator_struct *expression)
         return PROCESS_ERROR (TREE_DTOR_ERR, "Dtor expression's tree"
                                              " in differentiator dtor\n");
     
-    free (expression->database);
-    expression->database = nullptr;
+    free ((char*) expression->input_database);
+    expression->input_database = nullptr;
+
+    free (expression->copy_database);
+    expression->copy_database = nullptr;
 
     return 0;
+}
+
+Differentiator_struct* Differentiate_expression (Differentiator_struct *expression)
+{
+    assert (expression != nullptr && "expression is nullptr");
+
+
 }
 
 /*
@@ -157,100 +180,21 @@ int Load_database (Differentiator_struct *expression, const char *name_input_fil
     
     if (Text_read (fdin, &text))
         return PROCESS_ERROR (ERR_FILE_READING, "Error reading into Text_info structure\n");
-    
-    expression->database = text.text_buf;
-    text.pos = 0;
 
-    if (Read_expression_from_buffer (expression->tree.root, &text))
-        return PROCESS_ERROR (READ_DATABASE_ERR, "Error read a tree with a pointer to the root |%p|\n", 
-                                                                          (char*) expression->tree.root);
-    
     if (Close_file_discriptor (fdin))
         return PROCESS_ERROR (ERR_FILE_CLOSE, "Error close input file named \"%s\"\n", name_input_file);
 
 
-    return 0;
-}
+    expression->input_database = strdup (text.text_buf);
+    expression->copy_database  = strdup (text.text_buf);
 
-//======================================================================================
+    Free_buffer (&text);
 
+    int result_parce = Parce_math_expression (&expression->tree, 
+                                               expression->input_database, expression->copy_database);
 
-static int Read_expression_from_buffer (Node *node, Text_info *text)
-{
-    assert (text != nullptr && "text is nullptr");
-    
-    
-    if (*(text->text_buf + text->pos) == '(')
-    {
-        node->left  = Create_node ();
-        if (Check_nullptr (node->left))
-            return PROCESS_ERROR (ERR_MEMORY_ALLOC, "Memory allocation error, left son is nullptr\n");
-        
-        text->pos++;
-        
-        if (Read_expression_from_buffer (node->left, text))
-            return PROCESS_ERROR (READ_NODE_ERR, "Error reading the value of the left son = |%p|\n",
-                                                                                  (char*) node->left);
-            
-        if (Read_node_from_buffer (node, text))
-            return PROCESS_ERROR (READ_NODE_ERR, "Error reading the value of node = |%p|\n", (char*) node);    
-        
-        node->right  = Create_node ();
-        if (Check_nullptr (node->right))
-            return PROCESS_ERROR (ERR_MEMORY_ALLOC, "Memory allocation error, right son is nullptr\n");
-
-    
-        if (Read_expression_from_buffer (node->right, text))
-            return PROCESS_ERROR (READ_NODE_ERR, "Error reading the value of the right son = |%p|\n",
-                                                                                  (char*) node->right);
-        text->pos++;
-        return 0;
-    }
-    
-    else if (*(text->text_buf + text->pos) == ')' || *(text->text_buf + text->pos) == '\0') 
-    {
-        text->pos++;
-        return 0;
-    }
-    
-    else
-    {
-        if (Read_node_from_buffer (node, text))
-            return PROCESS_ERROR (READ_NODE_ERR, "Error reading the value of node = |%p|\n", (char*) node);
-
-        //printf ("AFTER READ: %s, |%p|\n", (text->text_buf + text->pos), (char*) node);
-        return 0;
-    }
-    
-    
-    return READ_DATABASE_ERR;
-}
-
-//======================================================================================
-
-static int Read_node_from_buffer (Node *node, Text_info *text)
-{
-    assert (text != nullptr && "text is nullptr");
-
-
-    char *str = (char*) (text->text_buf + text->pos);
-
-    int len_word = 0;
-
-    int result_scanned = sscanf (text->text_buf + text->pos, "%*[^)(] %n",
-                                                &len_word);
-    if (result_scanned != 0) 
-        return PROCESS_ERROR (READ_NODE_ERR, "Read error, was read: %d\n", result_scanned);
-    
-    *(text->text_buf + text->pos + len_word) = '\0';
-
-    text->pos += len_word + 1;
-    
-    printf ("READ: %s\n", str);
-    
-
-    if (Get_variable_node (node, str))
-        return PROCESS_ERROR (READ_NODE_ERR, "getter\n");
+    if (result_parce)
+        return PROCESS_ERROR (LOAD_DATABASE_ERR, "Parce result = %d", result_parce);
 
     return 0;
 }

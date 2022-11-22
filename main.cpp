@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <string>
 
@@ -42,8 +40,7 @@ int main (int argc, char *argv[])
             Err_report ("Too many command line arguments\n");
             return -1;
     }
-
-
+    
     Print_database (&expression.tree);    
 
 
