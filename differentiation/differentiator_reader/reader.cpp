@@ -331,7 +331,7 @@ static char* Get_var (int *pos, const char* expression, char* copy_expression)
 
     char *variable = (copy_expression + *pos);
 
-    sscanf (copy_expression + *pos, "%*[^^+-*() 0-9,.] %n", &shift);   
+    sscanf (copy_expression + *pos, "%*[^^+-*/() 0-9,.\] %n", &shift);   
 
     if (!shift)
         return nullptr;

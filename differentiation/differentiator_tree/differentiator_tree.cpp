@@ -11,22 +11,22 @@
 
 //======================================================================================
 
-Differentiator_node* Create_differentiatoer_node ()
+Differentiator_data* Init_differentiator_node ()
 {
-    Differentiator_node *differentiator_node = (Differentiator_node*) calloc (1, sizeof (Differentiator_node)); 
-    if (Check_nullptr (differentiator_node))
+    Differentiator_data *data = (Differentiator_data*) calloc (1, sizeof (Differentiator_data)); 
+    if (Check_nullptr (data))
     {
         PROCESS_ERROR (CREATE_EMPTY_NODE_ERR, "Memory allocation error, node nullptr\n");
         return nullptr;
     }
 
-    differentiator_node->node_type = UNKNOWN_T;
+    data->node_type = UNKNOWN_T;
 
-    differentiator_node->data.operation = OP_UNKNOWN; 
-    differentiator_node->data.val       = 0;
-    differentiator_node->data.var       = nullptr;
+    data->data.operation = OP_UNKNOWN; 
+    data->data.val       = 0;
+    data->data.var       = nullptr;
 
-    return differentiator_node;
+    return data;
 }
 
 //======================================================================================
@@ -35,7 +35,7 @@ int Get_operation_node (Node *node, int operation)
 {
     assert (node != nullptr && "node is nullptr");
 
-    Differentiator_node* node_data = Create_differentiatoer_node ();
+    Differentiator_data* node_data = Init_differentiator_node ();
 
     if (Check_nullptr (node_data))
     {
@@ -59,7 +59,7 @@ int Get_value_node (Node *node, double value)
 {
     assert (node != nullptr && "node is nullptr");
     
-    Differentiator_node* node_data = Create_differentiatoer_node ();
+    Differentiator_data* node_data = Init_differentiator_node ();
 
     if (Check_nullptr (node_data))
     {
@@ -84,7 +84,7 @@ int Get_variable_node (Node *node, const char* name_variable)
     assert (node != nullptr && "node is nullptr");
     assert (name_variable != nullptr && "name_variable is nullptr");
     
-    Differentiator_node* node_data = Create_differentiatoer_node ();
+    Differentiator_data* node_data = Init_differentiator_node ();
 
     if (Check_nullptr (node_data))
     {
@@ -108,11 +108,11 @@ int Free_differentiatoer_nodes_data (Node *node)
 {
     assert (node != nullptr && "node is nullptr");
 
-    ((Differentiator_node*) node->data)->node_type = UNKNOWN_T;
+    ((Differentiator_data*) node->data)->node_type = UNKNOWN_T;
 
-    ((Differentiator_node*) node->data)->data.operation = OP_UNKNOWN;
-    ((Differentiator_node*) node->data)->data.val       = 0;
-    ((Differentiator_node*) node->data)->data.var       = nullptr;
+    ((Differentiator_data*) node->data)->data.operation = OP_UNKNOWN;
+    ((Differentiator_data*) node->data)->data.val       = 0;
+    ((Differentiator_data*) node->data)->data.var       = nullptr;
 
     free (node->data);
     node->data = nullptr;

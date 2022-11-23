@@ -119,8 +119,8 @@ int Delete_node (Node *node)
 
 Node *Tree_copy(Node *node)
 {
-    assert (node != nullptr && "node is nullptr");
-
+    if (Check_nullptr (node)) return nullptr;
+    
     Node *node_cpy = Create_node();
     *node_cpy = *node;
 

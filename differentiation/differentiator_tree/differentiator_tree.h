@@ -16,7 +16,7 @@ enum Node_type
 };
 
 
-struct Differentiator_node
+struct Differentiator_data
 {
     Node_type node_type;
     
@@ -43,7 +43,7 @@ enum Differentiator_node_func_err
  * @brief  Creates an empty tree node 
  * @return Node* pointer to the created node
  */
-Differentiator_node* Create_differentiatoer_node ();
+Differentiator_data* Init_differentiator_node ();
 
 
 

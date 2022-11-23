@@ -20,7 +20,7 @@ int main (int argc, char *argv[])
 
     if (Differentiator_struct_ctor (&expression))
         return PROCESS_ERROR (DIFFERENTIATOR_CTOR_ERR, 
-                              "Ctor Differentiator struct in main\n");
+                              "Ctor Differentiator struct expression\n");
 
 
     switch (argc)
@@ -41,12 +41,29 @@ int main (int argc, char *argv[])
             return -1;
     }
     
-    Print_database (&expression.tree);    
+    Draw_database (&expression.tree);
 
+        
+    Differentiator_struct dif_expression = {};
+
+    if (Differentiator_struct_ctor (&dif_expression))
+        return PROCESS_ERROR (DIFFERENTIATOR_CTOR_ERR, 
+                              "Ctor Differentiator struct dif_expression\n");
+    
+    dif_expression.tree.root = Differentiate_expression (expression.tree.root);
+
+
+    Draw_database (&dif_expression.tree);
+
+    if (Differentiator_struct_dtor (&dif_expression))
+        return PROCESS_ERROR (DIFFERENTIATOR_DTOR_ERR, 
+                              "Dtor Differentiator struct dif_expression\n");
+
+    
 
     if (Differentiator_struct_dtor (&expression))
         return PROCESS_ERROR (DIFFERENTIATOR_DTOR_ERR, 
-                              "Dtor Differentiator struct in main\n");
+                              "Dtor Differentiator struct expression\n");
     
     
     #ifdef USE_LOG

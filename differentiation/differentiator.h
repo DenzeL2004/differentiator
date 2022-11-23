@@ -35,13 +35,10 @@ int Differentiator_struct_ctor (Differentiator_struct *expression);
 int Differentiator_struct_dtor (Differentiator_struct *expression);
 
 
-int Print_database (Tree *tree, const int node_mode = Mask_draw_node_modes);
+Node* Differentiate_expression (Node* node);
 
-/*
-int Save_database_to_file (const Differentiator_struct *expression, 
-                           const char *name_output_file = Default_output_file_name);
-*/
 
+int Draw_database (Tree *tree, const int node_mode = Mask_draw_node_modes);
 
 int Load_database (Differentiator_struct *expression, const char *name_input_file);
 

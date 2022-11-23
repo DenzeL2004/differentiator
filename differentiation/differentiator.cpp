@@ -3,12 +3,14 @@
 #include <assert.h>
 #include <stdio.h>
 #include <ctype.h> 
+#include <math.h>
 
 
 #include "differentiator.h"
 #include "differentiator_tree/draw_tree.h"
 #include "differentiator_reader/reader.h"
 
+#include "differntiator_dsl.h"
 
 #include "../src/log_info/log_errors.h"
 #include "../src/Generals_func/generals.h"
@@ -23,21 +25,12 @@ static int Read_expression_from_buffer (Node *node, Text_info *text);
 static int Read_node_from_buffer (Node *node, Text_info *text);
 
 
-static int Determine_node_type (Node *node, const char* str);
 
-static int Node_is_val       (const char* str);
+static Node* Create_val_node       (double val,   Node* left, Node* right);
 
-static int Node_is_var       (const char* str);
-
-static int Node_is_operation (const char *str);
+static Node* Create_operation_node (int operation, Node* left, Node* right);
 
 
-
-/*
-
-static int Save_expression_to_file (const Node *node, FILE *fpout);
-
-*/
 
 //======================================================================================
 
@@ -74,80 +67,114 @@ int Differentiator_struct_dtor (Differentiator_struct *expression)
     return 0;
 }
 
-Differentiator_struct* Differentiate_expression (Differentiator_struct *expression)
-{
-    assert (expression != nullptr && "expression is nullptr");
-
-
-}
-
-/*
 //======================================================================================
 
-int Save_database_to_file (const Differentiator_struct *expression, const char *name_output_file)
-{
-    assert (expression != nullptr && "expression is nullptr");
 
-
-    FILE *fpout = Open_file_ptr (name_output_file, "w");
-
-    if (Check_nullptr (fpout)) 
-        return PROCESS_ERROR (ERR_FILE_OPEN, "Error opening output file named \"%s\"\n", name_output_file);
-
-    if (Save_expression_to_file (expression->tree.root, fpout))
-        return PROCESS_ERROR (SAVING_DATABASE_ERR, "Error saving a tree with a pointer to the root |%p|\n", 
-                                                                            (char*) expression->tree.root);
-
-    if (Close_file_ptr (fpout)) 
-        return PROCESS_ERROR (ERR_FILE_CLOSE, "Error close output file named \"%s\"\n", name_output_file);
-
-    return 0;
-}
-
-//======================================================================================
-
-static int Save_expression_to_file (const Node *node, FILE *fpout)
+Node* Differentiate_expression (Node* node)
 {
     assert (node != nullptr && "node is nullptr");
-    assert (fpout != nullptr && "fpout is nullptr");
 
-    if (Is_leaf_node (node))
-        fprintf (fpout, " { %s } ", node->data);
+    Differentiator_data *node_data = (Differentiator_data*) node->data;
 
-    else
+    switch (node_data->node_type)
     {
-        fprintf(fpout, " { %s", node->data);
+        case VALUE_T:    return CREATE_VAL (0);
 
-        if (!Check_nullptr (node->left)) 
-        {
-            if (Save_expression_to_file(node->left, fpout))
-                return SAVING_NODE_ERR;
-        }
+        case VARIABLE_T: return CREATE_VAL (1);
+        
+        
+        case OPERATION_T: 
+            switch (node_data->data.operation)
+            {
+                case OP_ADD: return ADD (DL, DR);
+                case OP_SUB: return SUB (DL, DR);
 
-        if (!Check_nullptr (node->right)) 
-        {
-            if (Save_expression_to_file(node->right, fpout))
-                return SAVING_NODE_ERR;
-        }
+                case OP_MUL: return ADD (MUL (DL, CR), MUL (CL, DR));
+                case OP_DIV: return DIV (SUB (MUL (DL, CR), MUL (CL, DR)), MUL (CR, CR));
 
-        fprintf(fpout, " } ");
+                case OP_SIN: return MUL (COS (CL), DL);
+                case OP_COS: return MUL (CREATE_VAL (-1), MUL (SIN (CL), DL));
+
+                case OP_DEG:
+                    if (IS_VAL (LEFT) && IS_VAL (RIGHT))
+                        return CREATE_VAL (0);
+
+                    else if (IS_VAL (LEFT) && IS_FUNC (RIGHT))
+                        return MUL (DEG (CL, CR), MUL (LOG (CL), DR));
+
+                    else if (IS_FUNC (LEFT) && IS_VAL (RIGHT))
+                        return MUL (CR, MUL (DEG (CL, CREATE_VAL (GET_VAL (RIGHT) - 1)), DL));
+                    
+                    else if (IS_FUNC (LEFT) && IS_FUNC (RIGHT))
+                        return Differentiate_expression (DEG (CREATE_VAL (exp (1)), MUL (LOG (CL), CR)));
+                    
+                    else
+                        Err_report ("Unknown expressions\n");
+                
+                case OP_LOG:
+                    return MUL (DIV (CREATE_VAL (1), CL), DL);
+            }
     }
 
-    return 0;
+    return nullptr;
 }
 
 //======================================================================================
-*/
+
+static Node* Create_val_node (double val, Node* left, Node* right)
+{
+    Node *node = Create_node ();
+    if (Check_nullptr (node))
+    {
+        PROCESS_ERROR (CREATE_NODE_ERR, "Node creation error\n");
+        return nullptr;
+    }
+
+    if (Get_value_node (node, val))
+    {
+        PROCESS_ERROR (CREATE_NODE_ERR, "Get node data val, node = |%p|\n", (char*) node);
+        return nullptr;
+    }
+
+    node->left  = left;
+    node->right = right;
+
+    return node;
+}
 
 //======================================================================================
 
-int Print_database (Tree *tree, const int node_mode)
+static Node* Create_operation_node (int operation, Node* left, Node* right)
+{
+    Node *node = Create_node ();
+    if (Check_nullptr (node))
+    {
+        PROCESS_ERROR (CREATE_NODE_ERR, "Node creation error\n");
+        return nullptr;
+    }
+
+    if (Get_operation_node (node, operation))
+    {
+        PROCESS_ERROR (CREATE_NODE_ERR, "Get node data operation, node = |%p|\n", (char*) node);
+        return nullptr;
+    }
+
+    node->left  = left;
+    node->right = right;
+
+    return node;
+
+}
+
+//======================================================================================
+
+int Draw_database (Tree *tree, const int node_mode)
 {
     assert (tree != nullptr && "tree is nullptr");
 
     static int Cnt_graphs = 0;      //<-To display the current tree view
 
-    char name_output_file[Max_command_buffer] = {0};
+    char name_output_file[Max_command_buffer] = "";
     sprintf (name_output_file, "graph_img\\picture%d.png", Cnt_graphs); 
 
     Cnt_graphs++;

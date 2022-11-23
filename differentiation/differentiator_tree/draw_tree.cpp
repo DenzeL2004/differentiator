@@ -17,7 +17,7 @@ static void Draw_nodes_recursive (FILE *fpout, const Node *node, int *counter, c
 
 static void Draw_node (FILE *fpout, const Node *node, const int id, const int node_mode);
 
-static void Draw_node_data (FILE *fpout, Differentiator_node* node);
+static void Draw_node_data (FILE *fpout, Differentiator_data* node);
 
 //======================================================================================
 
@@ -130,7 +130,7 @@ static void Draw_node (FILE *fpout, const Node *node, const int id, const int no
 
     if (node_mode & (1 << DRAW_DATA))
     {
-        Draw_node_data (fpout, (Differentiator_node*)node->data);
+        Draw_node_data (fpout, (Differentiator_data*)node->data);
         if ((node_mode >> (DRAW_DATA + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
     }      
 
@@ -151,10 +151,10 @@ static void Draw_node (FILE *fpout, const Node *node, const int id, const int no
     return;
 }
 
-static void Draw_node_data (FILE *fpout, Differentiator_node* node)
+static void Draw_node_data (FILE *fpout, Differentiator_data* node)
 {
     assert (fpout != nullptr && "fpout is nullptr");
-    assert (node  != nullptr && "Differentiator_node is nullptr");
+    assert (node  != nullptr && "Differentiator_data is nullptr");
     
 
     switch (node->node_type)
