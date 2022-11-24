@@ -8,7 +8,10 @@
 
 #include "differentiator.h"
 #include "differentiator_tree/draw_tree.h"
+
 #include "differentiator_reader/reader.h"
+#include "differentiator_simplifier/simplifier.h"
+
 
 #include "differntiator_dsl.h"
 
@@ -20,16 +23,12 @@
 
 
 
+static Node* Differentiate_node (Node* node);
+
+
 static int Read_expression_from_buffer (Node *node, Text_info *text);
 
 static int Read_node_from_buffer (Node *node, Text_info *text);
-
-
-
-static Node* Create_val_node       (double val,   Node* left, Node* right);
-
-static Node* Create_operation_node (int operation, Node* left, Node* right);
-
 
 
 //======================================================================================
@@ -69,8 +68,54 @@ int Differentiator_struct_dtor (Differentiator_struct *expression)
 
 //======================================================================================
 
+int Simplifier_expression (Tree *math_expresion)
+{
+    assert (math_expresion != nullptr && "math expression is nullptr");
 
-Node* Differentiate_expression (Node* node)
+    while (Simplifier (math_expresion->root))
+        continue;
+
+
+    return 0;
+}
+
+//======================================================================================
+
+int Differentiate_expression (Tree *math_expression, Tree *dif_expression, const int derivative_number)
+{
+    assert (math_expression != nullptr && "math expression is nullptr");
+    assert (dif_expression  != nullptr && "dif expresion   is nullptr");
+
+    if (derivative_number < 0)
+    {
+        PROCESS_ERROR (DIFFERENT_EXPRESSION_ERR, "Derivative of negative order\n");
+        return DIFFERENT_EXPRESSION_ERR;
+    }
+
+    Free_differentiator_nodes_data (dif_expression->root);
+    dif_expression->root = Tree_copy (math_expression->root);
+
+    for (int id = 1; id <= derivative_number; id++)
+    {
+        Node *last_dif_node = dif_expression->root;
+
+        dif_expression->root = Differentiate_node (dif_expression->root);
+
+        Free_differentiator_nodes_data (last_dif_node);
+
+        if (IS_VAL (dif_expression->root) && Is_zero (GET_VAL (dif_expression->root))) ///print id < derivative_number??
+            break;
+
+    }
+    Draw_database (dif_expression);
+    Simplifier_expression (dif_expression);
+
+    return 0;
+}
+
+//======================================================================================
+
+static Node* Differentiate_node (Node* node)
 {
     assert (node != nullptr && "node is nullptr");
 
@@ -81,7 +126,6 @@ Node* Differentiate_expression (Node* node)
         case VALUE_T:    return CREATE_VAL (0);
 
         case VARIABLE_T: return CREATE_VAL (1);
-        
         
         case OPERATION_T: 
             switch (node_data->data.operation)
@@ -95,6 +139,9 @@ Node* Differentiate_expression (Node* node)
                 case OP_SIN: return MUL (COS (CL), DL);
                 case OP_COS: return MUL (CREATE_VAL (-1), MUL (SIN (CL), DL));
 
+                case OP_LOG:
+                    return MUL (DIV (CREATE_VAL (1), CL), DL);
+
                 case OP_DEG:
                     if (IS_VAL (LEFT) && IS_VAL (RIGHT))
                         return CREATE_VAL (0);
@@ -106,64 +153,31 @@ Node* Differentiate_expression (Node* node)
                         return MUL (CR, MUL (DEG (CL, CREATE_VAL (GET_VAL (RIGHT) - 1)), DL));
                     
                     else if (IS_FUNC (LEFT) && IS_FUNC (RIGHT))
-                        return Differentiate_expression (DEG (CREATE_VAL (exp (1)), MUL (LOG (CL), CR)));
+                        return Differentiate_node (DEG (CREATE_VAL (exp (1)), MUL (LOG (CL), CR)));
                     
                     else
+                    {
                         Err_report ("Unknown expressions\n");
+                        return nullptr;
+                    }
                 
-                case OP_LOG:
-                    return MUL (DIV (CREATE_VAL (1), CL), DL);
+                default:
+                {
+                    Err_report ("Unknown expressions\n");
+                    return nullptr;
+                }
+
             }
+        
+        default:
+        {
+            Err_report ("Unknown node type = %d\n", node_data->node_type);
+            return nullptr;
+        }
+
     }
 
     return nullptr;
-}
-
-//======================================================================================
-
-static Node* Create_val_node (double val, Node* left, Node* right)
-{
-    Node *node = Create_node ();
-    if (Check_nullptr (node))
-    {
-        PROCESS_ERROR (CREATE_NODE_ERR, "Node creation error\n");
-        return nullptr;
-    }
-
-    if (Get_value_node (node, val))
-    {
-        PROCESS_ERROR (CREATE_NODE_ERR, "Get node data val, node = |%p|\n", (char*) node);
-        return nullptr;
-    }
-
-    node->left  = left;
-    node->right = right;
-
-    return node;
-}
-
-//======================================================================================
-
-static Node* Create_operation_node (int operation, Node* left, Node* right)
-{
-    Node *node = Create_node ();
-    if (Check_nullptr (node))
-    {
-        PROCESS_ERROR (CREATE_NODE_ERR, "Node creation error\n");
-        return nullptr;
-    }
-
-    if (Get_operation_node (node, operation))
-    {
-        PROCESS_ERROR (CREATE_NODE_ERR, "Get node data operation, node = |%p|\n", (char*) node);
-        return nullptr;
-    }
-
-    node->left  = left;
-    node->right = right;
-
-    return node;
-
 }
 
 //======================================================================================
@@ -219,6 +233,8 @@ int Load_database (Differentiator_struct *expression, const char *name_input_fil
 
     int result_parce = Parce_math_expression (&expression->tree, 
                                                expression->input_database, expression->copy_database);
+
+    Simplifier_expression (&expression->tree);
 
     if (result_parce)
         return PROCESS_ERROR (LOAD_DATABASE_ERR, "Parce result = %d", result_parce);

@@ -68,8 +68,6 @@ Node* Create_node ();
 */
 int Delete_node (Node *node);
 
-Node *Tree_copy(Node *node);
-
 
 int Is_leaf_node (const Node *node);
 

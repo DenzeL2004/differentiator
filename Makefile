@@ -10,10 +10,11 @@ DIR_TREE = src/tree
 DIR		 = differentiation
 
 build:  obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
-		obj/differentiator.o obj/draw_tree.o obj/differentiator_tree.o obj/reader.o	
+		obj/differentiator.o obj/draw_tree.o obj/differentiator_tree.o 									\
+		obj/reader.o         obj/simplifier.o
 
 	g++ obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
-		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o obj/reader.o -o differ
+		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o obj/reader.o obj/simplifier.o -o differ
 
 
 obj/main.o: main.cpp
@@ -21,13 +22,13 @@ obj/main.o: main.cpp
 
 
 obj/differentiator.o: $(DIR)/differentiator.cpp $(DIR)/differentiator.h 				\
-												$(DIR)/differentiator_config.h
+												$(DIR)/operation_list.h
 	g++ $(DIR)/differentiator.cpp -c -o obj/differentiator.o $(FLAGS)
 
 
 
 obj/differentiator_tree.o: $(DIR)/differentiator.h 		  $(DIR)/differentiator_tree/differentiator_tree.cpp  	\
-						   $(DIR)/differentiator_config.h  $(DIR)/differentiator_tree/differentiator_tree.h		
+						   $(DIR)/operation_list.h  $(DIR)/differentiator_tree/differentiator_tree.h		
 	g++ $(DIR)/differentiator_tree/differentiator_tree.cpp -c -o obj/differentiator_tree.o $(FLAGS)
 
 
@@ -36,15 +37,18 @@ obj/draw_tree.o:  $(DIR)/differentiator_tree/differentiator_tree.cpp $(DIR)/diff
 	g++ $(DIR)/differentiator_tree/draw_tree.cpp -c -o obj/draw_tree.o $(FLAGS)
 
 
+
 obj/reader.o:  $(DIR)/differentiator_reader/reader.cpp $(DIR)/differentiator_reader/reader.h
 	g++ $(DIR)/differentiator_reader/reader.cpp -c -o obj/reader.o $(FLAGS)
+
+
+obj/simplifier.o:  $(DIR)/differentiator_simplifier/simplifier.cpp $(DIR)/differentiator_simplifier/simplifier.h
+	g++ $(DIR)/differentiator_simplifier/simplifier.cpp -c -o obj/simplifier.o $(FLAGS)
 
 
 
 obj/tree.o: $(DIR_TREE)/tree.cpp $(DIR_TREE)/tree.h 
 	g++ $(DIR_TREE)/tree.cpp -c -o obj/tree.o $(FLAGS)
-
-
 
 
 obj/log_errors.o: src/log_info/log_errors.h src/log_info/log_errors.cpp

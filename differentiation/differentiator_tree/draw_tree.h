@@ -1,7 +1,7 @@
 #ifndef _DRAW_TREE_H_
 #define _DRAW_TREE_H_
 
-#include "../differentiator_config.h"
+#include "../operation_list.h"
 
 #include "differentiator_tree.h"
 
@@ -26,6 +26,7 @@ enum Tree_node_draw_modes
 };
 
 
-int Draw_tree_graph (const Tree *tree, const char* name_output_file, const int node_mode = Mask_draw_node_modes);
+int Draw_tree_graph (const Tree *tree, const char* name_output_file, 
+                     const int node_draw_mode = Mask_draw_node_modes);
 
 #endif  //#endif _DRAW_TREE_H_

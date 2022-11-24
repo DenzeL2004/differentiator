@@ -1,7 +1,7 @@
 #ifndef _DIFFERENTIATOR_TREE_H_
 #define _DIFFERENTIATOR_TREE_H_
 
-#include "../differentiator_config.h"
+#include "../operation_list.h"
 
 #include "../../src/tree/tree.h"
 
@@ -46,12 +46,13 @@ enum Differentiator_node_func_err
 Differentiator_data* Init_differentiator_node ();
 
 
+Node* Create_value_node     (const double value,    Node* left, Node* right);
 
-int Get_operation_node (Node *node, int operation);
+Node* Create_operation_node (const int operation, Node* left, Node* right);
 
-int Get_value_node     (Node *node, double value);
+Node* Create_variable_node  (const char* variable, Node* left, Node* right);
 
-int Get_variable_node  (Node *node, const char* nmae_variable);
+Node *Tree_copy (Node *node);
 
 
 /** 
@@ -59,7 +60,7 @@ int Get_variable_node  (Node *node, const char* nmae_variable);
  * @param [in] node Pointer to Node pointer
  * @return Returns zero if the deletion was successful, otherwise returns a non-zero number
 */
-int Free_differentiatoer_nodes_data (Node *node);
+int Free_differentiator_nodes_data (Node *node);
 
 
 

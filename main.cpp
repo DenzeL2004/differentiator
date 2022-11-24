@@ -40,24 +40,24 @@ int main (int argc, char *argv[])
             Err_report ("Too many command line arguments\n");
             return -1;
     }
-    
+
     Draw_database (&expression.tree);
 
         
-    Differentiator_struct dif_expression = {};
+    Tree dif_expression = {};
 
-    if (Differentiator_struct_ctor (&dif_expression))
-        return PROCESS_ERROR (DIFFERENTIATOR_CTOR_ERR, 
-                              "Ctor Differentiator struct dif_expression\n");
+    if (Tree_ctor (&dif_expression))
+        return PROCESS_ERROR (TREE_CTOR_ERR, 
+                              "Ctor tree dif_expression\n");
     
-    dif_expression.tree.root = Differentiate_expression (expression.tree.root);
+    Differentiate_expression (&expression.tree, &dif_expression, 2);
+    
+    Draw_database (&dif_expression);
 
 
-    Draw_database (&dif_expression.tree);
-
-    if (Differentiator_struct_dtor (&dif_expression))
-        return PROCESS_ERROR (DIFFERENTIATOR_DTOR_ERR, 
-                              "Dtor Differentiator struct dif_expression\n");
+    if (Tree_dtor (&dif_expression))
+        return PROCESS_ERROR (TREE_DTOR_ERR, 
+                              "Dtor tree dif_expression\n");
 
     
 

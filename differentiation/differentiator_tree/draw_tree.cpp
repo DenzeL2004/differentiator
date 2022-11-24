@@ -12,16 +12,16 @@
 
 
 
-static void Draw_nodes_recursive (FILE *fpout, const Node *node, int *counter, const int node_mode);
+static void Draw_nodes_recursive (FILE *fpout, const Node *node, int *counter, const int node_draw_mode);
 
 
-static void Draw_node (FILE *fpout, const Node *node, const int id, const int node_mode);
+static void Draw_node (FILE *fpout, const Node *node, const int id, const int node_draw_mode);
 
 static void Draw_node_data (FILE *fpout, Differentiator_data* node);
 
 //======================================================================================
 
-int Draw_tree_graph (const Tree *tree, const char* name_output_file, const int node_mode)
+int Draw_tree_graph (const Tree *tree, const char* name_output_file, const int node_draw_mode)
 {
     assert (tree != nullptr && "tree is nullptr");
     assert (name_output_file != nullptr && "name output file is nullptr");
@@ -39,7 +39,7 @@ int Draw_tree_graph (const Tree *tree, const char* name_output_file, const int n
     fprintf (graph, "{\n");
 
     int counter = 0;
-    Draw_nodes_recursive (graph, tree->root, &counter, node_mode);
+    Draw_nodes_recursive (graph, tree->root, &counter, node_draw_mode);
 
 
     fprintf(graph, "}\n}\n");
@@ -71,7 +71,7 @@ int Draw_tree_graph (const Tree *tree, const char* name_output_file, const int n
 
 //======================================================================================
 
-static void Draw_nodes_recursive (FILE *fpout, const Node *node, int *counter, const int node_mode)
+static void Draw_nodes_recursive (FILE *fpout, const Node *node, int *counter, const int node_draw_mode)
 {
     assert (node  != nullptr && "node is nullptr\n");
     assert (fpout != nullptr && "fpout is nullptr\n");
@@ -83,18 +83,18 @@ static void Draw_nodes_recursive (FILE *fpout, const Node *node, int *counter, c
 
     char *ch_ptr = (char*) node;
 
-    Draw_node (fpout, node, *counter, node_mode);
+    Draw_node (fpout, node, *counter, node_draw_mode);
 
     if (!Check_nullptr (node->left)) 
     {
-        Draw_nodes_recursive (fpout, node->left,  counter, node_mode);
+        Draw_nodes_recursive (fpout, node->left,  counter, node_draw_mode);
         fprintf (fpout, "node%p -> node%p[style=filled, color=royalblue3];\n", 
                                 ch_ptr, ch_left_node_ptr);    
     }
 
     if (!Check_nullptr (node->right))
     {
-        Draw_nodes_recursive (fpout, node->right, counter, node_mode);
+        Draw_nodes_recursive (fpout, node->right, counter, node_draw_mode);
         fprintf (fpout, "node%p -> node%p[style=filled, color=red3];\n", 
                                 ch_ptr, ch_right_node_ptr);
     }
@@ -104,7 +104,7 @@ static void Draw_nodes_recursive (FILE *fpout, const Node *node, int *counter, c
 
 //======================================================================================
 
-static void Draw_node (FILE *fpout, const Node *node, const int id, const int node_mode)
+static void Draw_node (FILE *fpout, const Node *node, const int id, const int node_draw_mode)
 {
     assert (node != nullptr && "node is nullptr\n");
 
@@ -116,28 +116,28 @@ static void Draw_node (FILE *fpout, const Node *node, const int id, const int no
 
     fprintf (fpout, "node%p [style=filled, shape = record, label =  \"{", ch_ptr);
 
-    if (node_mode & (1 << DRAW_ID))
+    if (node_draw_mode & (1 << DRAW_ID))
     {
         fprintf (fpout, "ID: %d ", id);
-        if ((node_mode >> (DRAW_ID + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
+        if ((node_draw_mode >> (DRAW_ID + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
     }
 
-    if (node_mode & (1 << DRAW_PTR))
+    if (node_draw_mode & (1 << DRAW_PTR))
     {   
         fprintf (fpout, "NODE POINTER: %p ", ch_ptr);
-        if ((node_mode >> (DRAW_PTR + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
+        if ((node_draw_mode >> (DRAW_PTR + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
     }
 
-    if (node_mode & (1 << DRAW_DATA))
+    if (node_draw_mode & (1 << DRAW_DATA))
     {
         Draw_node_data (fpout, (Differentiator_data*)node->data);
-        if ((node_mode >> (DRAW_DATA + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
+        if ((node_draw_mode >> (DRAW_DATA + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
     }      
 
-    if (node_mode & (1 << DRAW_SONS_PTR))
+    if (node_draw_mode & (1 << DRAW_SONS_PTR))
     {  
         fprintf (fpout, "left: %p | right: %p ", ch_left_node_ptr, ch_right_node_ptr);
-        if ((node_mode >> (DRAW_SONS_PTR + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
+        if ((node_draw_mode >> (DRAW_SONS_PTR + 1)) && Mask_draw_node_modes) fprintf (fpout, "|"); //<- checking to make sure not to create an extra field
     }
 
     fprintf (fpout, "}\",");
@@ -155,7 +155,6 @@ static void Draw_node_data (FILE *fpout, Differentiator_data* node)
 {
     assert (fpout != nullptr && "fpout is nullptr");
     assert (node  != nullptr && "Differentiator_data is nullptr");
-    
 
     switch (node->node_type)
     {

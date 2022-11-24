@@ -16,7 +16,7 @@ enum Differentiator_operation
     OP_SIN      =  4,
     OP_COS      =  5,
 
-    OP_LOG       =  6,
+    OP_LOG      =  6,
 
     OP_DEG      =  7,
 };

@@ -1,22 +1,21 @@
 #ifndef _DIFFERENTIATOR_H_
 #define _DIFFERENTIATOR_H_
 
-#include "differentiator_config.h"
+#include "operation_list.h"
 
 #include "differentiator_tree/differentiator_tree.h"
 #include "differentiator_tree/draw_tree.h"
 
 enum Differentiator_func_err
 {
-    DIFFERENTIATOR_CTOR_ERR = -1,
-    DIFFERENTIATOR_DTOR_ERR = -2,
+    DIFFERENTIATOR_CTOR_ERR     = -1,
+    DIFFERENTIATOR_DTOR_ERR     = -2,
     
-    SAVING_DATABASE_ERR     = -3,
-    SAVING_NODE_ERR         = -4,
+    DIFFERENT_EXPRESSION_ERR    = -3,
 
-    LOAD_DATABASE_ERR       = -5,
+    LOAD_DATABASE_ERR           = -5,
 
-    DRAW_DATABASE_ERR       = -7,
+    DRAW_DATABASE_ERR           = -7,
 };
 
 
@@ -35,7 +34,7 @@ int Differentiator_struct_ctor (Differentiator_struct *expression);
 int Differentiator_struct_dtor (Differentiator_struct *expression);
 
 
-Node* Differentiate_expression (Node* node);
+int Differentiate_expression (Tree *math_expression, Tree *dif_expression, const int derivative_number);
 
 
 int Draw_database (Tree *tree, const int node_mode = Mask_draw_node_modes);

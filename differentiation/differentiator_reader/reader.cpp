@@ -10,18 +10,18 @@
 #include "../../src/Generals_func/generals.h"
 
 
-static Node* Expr     (Node* node, int *pos, const char* expression, char* copy_expression);
+static Node* Get_expression     (int *pos, const char* expression, char* copy_expression);
 
-static Node* Term     (Node* node, int *pos, const char* expression, char* copy_expression);
+static Node* Get_term     (int *pos, const char* expression, char* copy_expression);
 
-static Node* Get_degree   (Node* node, int *pos, const char* expression, char* copy_expression);
-
-
-static Node* Get_expression     (Node* node, int *pos, const char* expression, char* copy_expression);
+static Node* Get_degree   (int *pos, const char* expression, char* copy_expression);
 
 
+static Node* Get_priority     (int *pos, const char* expression, char* copy_expression);
 
-static Node* Unary_operation       (Node* node, int *pos, const char* expression, char* copy_expression);
+
+
+static Node* Unary_operation       (int *pos, const char* expression, char* copy_expression);
 
 static int   Check_unary_operation (const int pos, const char* expression);
 
@@ -37,9 +37,11 @@ int Parce_math_expression (Tree *tree_expresion, const char *expression, char *c
     assert (tree_expresion  != nullptr && "tree_expresion is nullptr");
     assert (expression      != nullptr && "expression is nullptr");
     assert (copy_expression != nullptr && "copy_expression is nullptr");
+
+    Free_differentiator_nodes_data (tree_expresion->root);
     
     int pos = 0;
-    tree_expresion->root = Expr (tree_expresion->root, &pos, expression, copy_expression);
+    tree_expresion->root = Get_expression (&pos, expression, copy_expression);
 
     if (Check_nullptr (tree_expresion->root))
         return PROCESS_ERROR (PARCE_ERR, "root is nullptr");
@@ -53,13 +55,12 @@ int Parce_math_expression (Tree *tree_expresion, const char *expression, char *c
 
 //=================================================================================================
 
-static Node* Expr (Node* node, int *pos, const char* expression, char* copy_expression)
+static Node* Get_expression (int *pos, const char* expression, char* copy_expression)
 {
     assert (expression      != nullptr && "expression is nullptr");
     assert (copy_expression != nullptr && "copy_expression is nullptr");
-    assert (node            != nullptr && "node is nullptr");
 
-    node = Term (node, pos, expression, copy_expression);
+    Node* node = Get_term (pos, expression, copy_expression);
 
     while (*(expression + *pos) == '+' || *(expression + *pos) == '-')
     {
@@ -83,12 +84,12 @@ static Node* Expr (Node* node, int *pos, const char* expression, char* copy_expr
             return nullptr;
         }
 
-        Term (node->right, pos, expression, copy_expression);
+        node->right = Get_term (pos, expression, copy_expression);
 
         if (operation == '+')
-            Get_operation_node (node, OP_ADD);
+            node = Create_operation_node (OP_ADD, node->left, node->right);
         else
-            Get_operation_node (node, OP_SUB);
+            node = Create_operation_node (OP_SUB, node->left, node->right);
 
     }
 
@@ -97,13 +98,12 @@ static Node* Expr (Node* node, int *pos, const char* expression, char* copy_expr
 
 //=================================================================================================
 
-static Node* Term (Node* node, int *pos, const char* expression, char* copy_expression)
+static Node* Get_term (int *pos, const char* expression, char* copy_expression)
 {
     assert (expression      != nullptr && "expression is nullptr");
     assert (copy_expression != nullptr && "copy_expression is nullptr");
-    assert (node            != nullptr && "node is nullptr");
 
-    node = Get_degree (node, pos, expression, copy_expression);
+    Node* node = Get_degree (pos, expression, copy_expression);
     
     while (*(expression + *pos) == '*' || *(expression + *pos) == '/')
     {
@@ -127,12 +127,12 @@ static Node* Term (Node* node, int *pos, const char* expression, char* copy_expr
             return nullptr;
         }
 
-        node->right = Get_degree (node->right, pos, expression, copy_expression);
+        node->right = Get_degree (pos, expression, copy_expression);
 
         if (operation == '*')
-            Get_operation_node (node, OP_MUL);
+            node = Create_operation_node (OP_MUL, node->left, node->right);
         else
-            Get_operation_node (node, OP_DIV);
+            node = Create_operation_node (OP_DIV, node->left, node->right);
     }
 
     return node;   
@@ -140,13 +140,12 @@ static Node* Term (Node* node, int *pos, const char* expression, char* copy_expr
 
 //=================================================================================================
 
-static Node* Get_degree (Node* node, int *pos, const char* expression, char* copy_expression)
+static Node* Get_degree (int *pos, const char* expression, char* copy_expression)
 {
     assert (expression      != nullptr && "expression is nullptr");
     assert (copy_expression != nullptr && "copy_expression is nullptr");
-    assert (node            != nullptr && "node is nullptr");
 
-    node = Get_expression (node, pos, expression, copy_expression);
+    Node* node = Get_priority (pos, expression, copy_expression);
     
     while (*(expression + *pos) == '^')
     {
@@ -169,9 +168,9 @@ static Node* Get_degree (Node* node, int *pos, const char* expression, char* cop
             return nullptr;
         }
 
-        node->right = Get_expression (node->right, pos, expression, copy_expression);
+        node->right = Get_priority (pos, expression, copy_expression);
         
-        Get_operation_node (node, OP_DEG);
+        node = Create_operation_node (OP_DEG, node->left, node->right);
     }
 
     return node;   
@@ -179,17 +178,18 @@ static Node* Get_degree (Node* node, int *pos, const char* expression, char* cop
 
 //=================================================================================================
 
-static Node* Get_expression (Node* node, int *pos, const char* expression, char* copy_expression)
+static Node* Get_priority (int *pos, const char* expression, char* copy_expression)
 {
     assert (expression      != nullptr && "expression is nullptr");
     assert (copy_expression != nullptr && "copy_expression is nullptr");
-    assert (node            != nullptr && "node is nullptr");
+
+    Node* node = nullptr;
 
     if (*(expression + *pos) == '(')
     {
         (*pos)++;
 
-        node = Expr (node, pos, expression, copy_expression);
+        node = Get_expression (pos, expression, copy_expression);
 
         if (*(expression + *pos) != ')')
         {
@@ -202,7 +202,7 @@ static Node* Get_expression (Node* node, int *pos, const char* expression, char*
     
     else if (Check_unary_operation (*pos, expression))
     {
-        node = Unary_operation (node, pos, expression, copy_expression);
+        node = Unary_operation (pos, expression, copy_expression);
     }
     else
     {
@@ -210,11 +210,13 @@ static Node* Get_expression (Node* node, int *pos, const char* expression, char*
         if (Check_nullptr (variable))
         {
             double val = Get_num (pos, expression);
-            Get_value_node (node, val);
+            node = Create_value_node (val, nullptr, nullptr);
         }
 
         else
-            Get_variable_node (node, variable);
+        {
+            node = Create_variable_node (variable, nullptr, nullptr);
+        }
     }
 
     return node;
@@ -222,16 +224,18 @@ static Node* Get_expression (Node* node, int *pos, const char* expression, char*
 
 //=================================================================================================
 
-static Node* Unary_operation (Node* node, int *pos, const char* expression, char* copy_expression)
+static Node* Unary_operation (int *pos, const char* expression, char* copy_expression)
 {
     assert (expression      != nullptr && "expression is nullptr");
     assert (copy_expression != nullptr && "copy_expression is nullptr");
-    assert (node != nullptr && "node is nullptr");
 
+    Node* node = nullptr;
 
     if (!strncmp (expression + *pos, "sin", 3))
     {
         *pos += 3;
+
+        node = Create_operation_node (OP_SIN, nullptr, nullptr);
 
         node->left = Create_node ();
         if (Check_nullptr (node->left))
@@ -240,10 +244,8 @@ static Node* Unary_operation (Node* node, int *pos, const char* expression, char
             return nullptr;
         }
 
-        node->left = Get_expression (node->left, pos, expression, copy_expression);
-
-        Get_operation_node (node, OP_SIN);
-
+        node->left = Get_priority (pos, expression, copy_expression);
+        
         return node;
     }
 
@@ -251,17 +253,17 @@ static Node* Unary_operation (Node* node, int *pos, const char* expression, char
     {
         *pos += 3;
 
+        node = Create_operation_node (OP_COS, nullptr, nullptr);
+
         node->left = Create_node ();
         if (Check_nullptr (node->left))
         {
             PROCESS_ERROR (ERR_MEMORY_ALLOC, "Memory allocation error, left son is nullptr\n");
             return nullptr;
         }
-
-        node->left = Get_expression (node->left, pos, expression, copy_expression);
-
-        Get_operation_node (node, OP_COS);
-
+        
+        node->left = Get_priority (pos, expression, copy_expression);
+        
         return node;
     }
 
@@ -269,6 +271,8 @@ static Node* Unary_operation (Node* node, int *pos, const char* expression, char
     {
         *pos += 3;
 
+        node = Create_operation_node (OP_LOG, nullptr, nullptr);
+
         node->left = Create_node ();
         if (Check_nullptr (node->left))
         {
@@ -276,14 +280,12 @@ static Node* Unary_operation (Node* node, int *pos, const char* expression, char
             return nullptr;
         }
 
-        node->left = Get_expression (node->left, pos, expression, copy_expression);
-
-        Get_operation_node (node, OP_LOG);
+        node->left = Get_priority (pos, expression, copy_expression);
 
         return node;
     }
 
-    return nullptr;
+    return node;
 }
 
 //=================================================================================================

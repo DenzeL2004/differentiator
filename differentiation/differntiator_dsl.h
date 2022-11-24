@@ -1,13 +1,13 @@
 #ifndef _DIFFERENTIATOR_DSL_H_
 #define _DIFFERENTIATOR_DSL_H_
 
-#define CREATE_VAL(val) Create_val_node ((val), nullptr, nullptr)
+#define CREATE_VAL(val) Create_value_node ((val), nullptr, nullptr)
 
 #define LEFT    node->left
 #define RIGHT   node->right
 
-#define DL  Differentiate_expression (LEFT)
-#define DR  Differentiate_expression (RIGHT)
+#define DL  Differentiate_node (LEFT)
+#define DR  Differentiate_node (RIGHT)
 
 #define CL  Tree_copy (LEFT)
 #define CR  Tree_copy (RIGHT)
@@ -34,5 +34,7 @@
 #define IS_FUNC(node) (IS_OP(node) || IS_VAR(node))
 
 #define GET_VAL(node) (((Differentiator_data*) (node)->data)->data.val)
+#define GET_OP(node)  (((Differentiator_data*) (node)->data)->data.operation)
+#define GET_VAR(node) (((Differentiator_data*) (node)->data)->data.var)
 
 #endif //_DIFFERENTIATOR_DSL_H_
