@@ -23,7 +23,7 @@
 
 
 
-static Node* Differentiate_node (Node* node);
+static Node* Differentiate_node (Node* node, const char *var);
 
 
 static int Read_expression_from_buffer (Node *node, Text_info *text);
@@ -81,10 +81,12 @@ int Simplifier_expression (Tree *math_expresion)
 
 //======================================================================================
 
-int Differentiate_expression (Tree *math_expression, Tree *dif_expression, const int derivative_number)
+int Differentiate_expression (Tree *math_expression, Tree *dif_expression, 
+                              const char* var, const int derivative_number)
 {
     assert (math_expression != nullptr && "math expression is nullptr");
     assert (dif_expression  != nullptr && "dif expresion   is nullptr");
+    assert (var             != nullptr && "var is nullptr");
 
     if (derivative_number < 0)
     {
@@ -99,7 +101,7 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression, const
     {
         Node *last_dif_node = dif_expression->root;
 
-        dif_expression->root = Differentiate_node (dif_expression->root);
+        dif_expression->root = Differentiate_node (dif_expression->root, var);
 
         Free_differentiator_nodes_data (last_dif_node);
 
@@ -107,7 +109,7 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression, const
             break;
 
     }
-    Draw_database (dif_expression);
+    
     Simplifier_expression (dif_expression);
 
     return 0;
@@ -115,9 +117,10 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression, const
 
 //======================================================================================
 
-static Node* Differentiate_node (Node* node)
+static Node* Differentiate_node (Node* node, const char *var)
 {
     assert (node != nullptr && "node is nullptr");
+    assert (var  != nullptr && "var  is nullptr");
 
     Differentiator_data *node_data = (Differentiator_data*) node->data;
 
@@ -125,7 +128,11 @@ static Node* Differentiate_node (Node* node)
     {
         case VALUE_T:    return CREATE_VAL (0);
 
-        case VARIABLE_T: return CREATE_VAL (1);
+        case VARIABLE_T:
+            if (!strcmp (GET_VAR (node), var)) 
+                return CREATE_VAL (1);
+            else
+                return CREATE_VAL (0); 
         
         case OPERATION_T: 
             switch (node_data->data.operation)
@@ -153,7 +160,7 @@ static Node* Differentiate_node (Node* node)
                         return MUL (CR, MUL (DEG (CL, CREATE_VAL (GET_VAL (RIGHT) - 1)), DL));
                     
                     else if (IS_FUNC (LEFT) && IS_FUNC (RIGHT))
-                        return Differentiate_node (DEG (CREATE_VAL (exp (1)), MUL (LOG (CL), CR)));
+                        return DIF (DEG (CREATE_VAL (exp (1)), MUL (LOG (CL), CR)));
                     
                     else
                     {

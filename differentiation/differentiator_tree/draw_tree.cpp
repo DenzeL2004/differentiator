@@ -159,7 +159,7 @@ static void Draw_node_data (FILE *fpout, Differentiator_data* node)
     switch (node->node_type)
     {
         case VALUE_T:
-            fprintf (fpout, "{NODE TYPE: VAL| %lg}", node->data.val);
+            fprintf (fpout, "{NODE TYPE: VAL| %.4lg}", node->data.val);
             break;
 
         case VARIABLE_T:

@@ -28,7 +28,7 @@ static const char *Name_operations[] = {
     "DIV",
     "SIN",
     "COS",
-    "LN",
+    "LOG",
     "DEG"
 };
 

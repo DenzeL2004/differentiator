@@ -50,7 +50,7 @@ int main (int argc, char *argv[])
         return PROCESS_ERROR (TREE_CTOR_ERR, 
                               "Ctor tree dif_expression\n");
     
-    Differentiate_expression (&expression.tree, &dif_expression, 2);
+    Differentiate_expression (&expression.tree, &dif_expression, "a", 1);
     
     Draw_database (&dif_expression);
 

@@ -6,8 +6,10 @@
 #define LEFT    node->left
 #define RIGHT   node->right
 
-#define DL  Differentiate_node (LEFT)
-#define DR  Differentiate_node (RIGHT)
+#define DL         Differentiate_node (LEFT,  var)
+#define DR         Differentiate_node (RIGHT, var)
+#define DIF(node)  Differentiate_node (node, var)
+
 
 #define CL  Tree_copy (LEFT)
 #define CR  Tree_copy (RIGHT)
@@ -28,8 +30,6 @@
 #define IS_VAL(node) (((Differentiator_data*) (node)->data)->node_type == VALUE_T)
 #define IS_OP(node)  (((Differentiator_data*) (node)->data)->node_type == OPERATION_T)
 #define IS_VAR(node) (((Differentiator_data*) (node)->data)->node_type == VARIABLE_T)
-
-#define IS_OP_CODE(node, operation) (IS_OP(node) && ((Differentiator_data*) (node)->data)->data.operation == operation)
 
 #define IS_FUNC(node) (IS_OP(node) || IS_VAR(node))
 

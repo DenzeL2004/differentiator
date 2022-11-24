@@ -34,7 +34,8 @@ int Differentiator_struct_ctor (Differentiator_struct *expression);
 int Differentiator_struct_dtor (Differentiator_struct *expression);
 
 
-int Differentiate_expression (Tree *math_expression, Tree *dif_expression, const int derivative_number);
+int Differentiate_expression (Tree *math_expression, Tree *dif_expression, 
+                              const char* var, const int derivative_number);
 
 
 int Draw_database (Tree *tree, const int node_mode = Mask_draw_node_modes);
