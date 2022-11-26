@@ -41,7 +41,7 @@ int main (int argc, char *argv[])
             return -1;
     }
 
-    Draw_database (&expression.tree);
+    //Draw_database (&expression.tree);
 
     if (Expression_processing (&expression))
         return PROCESS_ERROR (EXIT_FAILURE, "Expression processing err");
