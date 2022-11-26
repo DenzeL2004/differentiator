@@ -63,7 +63,6 @@ static int Simplification_node (Node* node)
 {
     assert (node != nullptr && "null is nullptr");  
 
-    
     if (IS_OP (node))
     {
         if (GET_OP (node) == OP_MUL)
@@ -93,7 +92,6 @@ static int Simplification_node (Node* node)
 
     return 0;
 }
-
 
 //======================================================================================
 

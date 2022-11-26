@@ -6,6 +6,8 @@
 #include "differentiator_tree/differentiator_tree.h"
 #include "differentiator_tree/draw_tree.h"
 
+#include "name_table/name_table.h"
+
 enum Differentiator_func_err
 {
     DIFFERENTIATOR_CTOR_ERR     = -1,
@@ -13,9 +15,14 @@ enum Differentiator_func_err
     
     DIFFERENT_EXPRESSION_ERR    = -3,
 
+    PROCESS_EXPRESSION_ERR      = -4,
+
     LOAD_DATABASE_ERR           = -5,
 
     DRAW_DATABASE_ERR           = -7,
+
+    INIT_NAME_TABLE_ERR         = -8,
+    GET_NAME_OBJECT_ERR         = -9,
 };
 
 
@@ -23,6 +30,8 @@ struct Differentiator_struct
 {
     const char *input_database = nullptr;
           char *copy_database  = nullptr;
+
+    Name_table name_table = {};
 
     Tree tree = {};
 };
@@ -34,8 +43,14 @@ int Differentiator_struct_ctor (Differentiator_struct *expression);
 int Differentiator_struct_dtor (Differentiator_struct *expression);
 
 
+int Expression_processing (Differentiator_struct *expression);
+
+
 int Differentiate_expression (Tree *math_expression, Tree *dif_expression, 
                               const char* var, const int derivative_number);
+
+
+int Simplifier_expression (Tree *math_expresion);
 
 
 int Draw_database (Tree *tree, const int node_mode = Mask_draw_node_modes);

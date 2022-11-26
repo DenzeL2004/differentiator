@@ -26,9 +26,12 @@
 static Node* Differentiate_node (Node* node, const char *var);
 
 
-static int Read_expression_from_buffer (Node *node, Text_info *text);
+static int Init_name_table (Differentiator_struct *expression);
 
-static int Read_node_from_buffer (Node *node, Text_info *text);
+static int Get_name_object (Node *node, Name_table *name_table);
+
+
+static int Print_modes ();
 
 
 //======================================================================================
@@ -42,7 +45,11 @@ int Differentiator_struct_ctor (Differentiator_struct *expression)
                                              " in differentiator ctor\n");
    
     expression->input_database = nullptr;
-    expression->copy_database = nullptr;
+    expression->copy_database  = nullptr;
+
+    if (Name_table_ctor (&expression->name_table))
+        return PROCESS_ERROR (NAME_TABLE_CTOR_ERR, "Dtor expression's name_table"
+                                                     " in differentiator ctor\n");
 
     return 0;
 }
@@ -63,6 +70,10 @@ int Differentiator_struct_dtor (Differentiator_struct *expression)
     free (expression->copy_database);
     expression->copy_database = nullptr;
 
+    if (Name_table_dtor (&expression->name_table))
+        return PROCESS_ERROR (NAME_TABLE_CTOR_ERR, "Ctor expression's name_table"
+                                                      " in differentiator dtor\n");
+
     return 0;
 }
 
@@ -74,7 +85,6 @@ int Simplifier_expression (Tree *math_expresion)
 
     while (Simplifier (math_expresion->root))
         continue;
-
 
     return 0;
 }
@@ -105,13 +115,13 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression,
 
         Free_differentiator_nodes_data (last_dif_node);
 
+        Simplifier_expression (dif_expression);
+
         if (IS_VAL (dif_expression->root) && Is_zero (GET_VAL (dif_expression->root))) ///print id < derivative_number??
             break;
 
     }
     
-    Simplifier_expression (dif_expression);
-
     return 0;
 }
 
@@ -189,6 +199,103 @@ static Node* Differentiate_node (Node* node, const char *var)
 
 //======================================================================================
 
+int Expression_processing (Differentiator_struct *expression)
+{
+    assert (expression != nullptr && "expression is nullptr");
+
+    Tree tmp_expression = {};
+
+    if (Tree_ctor (&tmp_expression))
+        return PROCESS_ERROR (TREE_CTOR_ERR, "Ctor tree tmp_expression\n");
+
+    tmp_expression.root = Tree_copy (expression->tree.root);
+
+    Print_modes ();
+
+    while (true)
+    {
+        printf ("Enter command: ");
+
+        char cur_cmd[Max_command_buffer] = "";
+
+        if (scanf ("%s", cur_cmd) != 1)
+            return PROCESS_ERROR (PROCESS_EXPRESSION_ERR, "Error reading the operating "
+                                                    "mode of the differentiator\n");
+            
+        if (!strcmpi ("Differentiate", cur_cmd) || !strcmpi ("Di", cur_cmd))     
+        {                                       
+            int order = 0;
+            char cur_variable[Max_command_buffer] = "";
+
+            printf ("Enter the number of the derivative and by which variable to differentiate.\n"); 
+            int res_scan = scanf ("%d%s", &order, cur_variable);
+
+            if (res_scan != 2)
+                return PROCESS_ERROR (PROCESS_EXPRESSION_ERR, 
+                                     "Reading input parameters, res_scan = %d\n"
+                                      "order = %d, var = %s", cur_variable);
+
+            Differentiate_expression (&expression->tree, &tmp_expression, cur_variable, order);
+        }   
+
+        else if (!strcmpi ("Draw", cur_cmd) || !strcmpi ("Dr", cur_cmd))
+        {
+            if (Draw_database (&tmp_expression))
+                return PROCESS_ERROR (DRAW_DATABASE_ERR, "Print database error\n");
+        }
+
+        else if (!strcmpi ("Taylo", cur_cmd) || !strcmpi ("T", cur_cmd))     
+        {                                       
+                   
+        } 
+
+        else if (!strcmpi ("Print", cur_cmd) || !strcmpi ("P", cur_cmd))     
+        {                                       
+
+        } 
+
+        else if (!strcmpi ("Modes", cur_cmd) || !strcmpi ("M", cur_cmd))     
+        {                                       
+            Print_modes ();            
+        } 
+
+        else if (!strcmpi ("Exit", cur_cmd) || !strcmpi ("E", cur_cmd))     
+        {                                       
+            break;      
+        } 
+        
+        else
+            printf ("Unknown mode\n");
+    }
+
+    if (Tree_dtor (&tmp_expression))
+        return PROCESS_ERROR (TREE_DTOR_ERR, "Dtor tree tmp_expression\n");
+
+
+    return 0;
+}
+
+//======================================================================================
+
+static int Print_modes ()
+{
+    printf ("\n");
+
+    printf ("1. [Di]fferentiate. Differentiate initial math expression.\n");
+    printf ("2. [Dr]aw. Draws last transformation expression tree.\n");
+    printf ("3. [C]alculate. Dot last transformation expression calculation.\n");
+    printf ("4. [T]aylor. Taylor polynomial with given variable initial expression.\n");
+    printf ("5. [P]rint. Print last transformation expression to latex file.\n");
+    printf ("6. [M]odes. Print mode List.\n");
+    printf ("7. [E]xit. Finish the processing.\n");
+
+    printf ("\n");
+
+    return 0;
+} 
+
+//======================================================================================
+
 int Draw_database (Tree *tree, const int node_mode)
 {
     assert (tree != nullptr && "tree is nullptr");
@@ -232,6 +339,8 @@ int Load_database (Differentiator_struct *expression, const char *name_input_fil
     if (Close_file_discriptor (fdin))
         return PROCESS_ERROR (ERR_FILE_CLOSE, "Error close input file named \"%s\"\n", name_input_file);
 
+    free ((char*) expression->input_database);
+    free (expression->copy_database);
 
     expression->input_database = strdup (text.text_buf);
     expression->copy_database  = strdup (text.text_buf);
@@ -240,11 +349,77 @@ int Load_database (Differentiator_struct *expression, const char *name_input_fil
 
     int result_parce = Parce_math_expression (&expression->tree, 
                                                expression->input_database, expression->copy_database);
+    if (result_parce)
+        return PROCESS_ERROR (LOAD_DATABASE_ERR, "Parce result = %d", result_parce);
 
     Simplifier_expression (&expression->tree);
 
-    if (result_parce)
-        return PROCESS_ERROR (LOAD_DATABASE_ERR, "Parce result = %d", result_parce);
+    int result_init = Init_name_table (expression);
+    if (result_init)
+        return PROCESS_ERROR (INIT_NAME_TABLE_ERR, "name initialization ended with %d", result_init);
+
+    return 0;
+}
+
+//======================================================================================
+
+static int Init_name_table (Differentiator_struct *expression)
+{
+    assert (expression != nullptr && "expression is nullptr");
+
+    int result_get_name = Get_name_object (expression->tree.root, &expression->name_table);
+    if (result_get_name)
+        return PROCESS_ERROR (GET_NAME_OBJECT_ERR, "Getting object names ended with %d\n", result_get_name);
+
+    if (Check_nullptr (&expression->name_table))
+        return PROCESS_ERROR (ERR_NULLPTR, "Name table is nullptr\n");
+
+    for (int id = 0; id < expression->name_table.cnt_object; id++)
+    {
+        switch (expression->name_table.objects[id].type)
+        {
+            case OBJ_VARIABLE_T:
+                {
+                    printf ("%s = ", expression->name_table.objects[id].name);
+        
+                    double val = NAN;
+                    scanf ("%lg", &val);
+
+                    if (isnan (val)) 
+                        return PROCESS_ERROR (ERR_READ, "Value was not read. Val = %lg\n", val);
+
+                    expression->name_table.objects[id].data = calloc (1, sizeof (double));
+                    
+                    *((double*) expression->name_table.objects[id].data) = val;
+                }
+                break;
+            
+            default:
+                return PROCESS_ERROR (OBJ_UNKNOWN_T, "Unknown object type\n");
+        }
+    }
+
+    return 0;
+}
+
+//======================================================================================
+
+static int Get_name_object (Node *node, Name_table *name_table)
+{
+    assert (node != nullptr && "node is nullptr");
+    assert (name_table != nullptr && "name_table is nullptr");
+
+    if (!Check_nullptr (node->left))
+        if (Get_name_object (node->left, name_table))
+            return PROCESS_ERROR (GET_NAME_OBJECT_ERR, "left son worked incorrectly");
+
+    if (!Check_nullptr (node->right))
+        if (Get_name_object (node->right, name_table))
+            return PROCESS_ERROR (GET_NAME_OBJECT_ERR, "right son worked incorrectly");
+
+    if (IS_VAR (node))
+        if (Add_object (name_table, GET_VAR (node), OBJ_VARIABLE_T) == ADD_OBJECT_ERR)
+            return PROCESS_ERROR (ADD_OBJECT_ERR, "add name variable node = |%p|", (char*) node);
 
     return 0;
 }

@@ -43,28 +43,13 @@ int main (int argc, char *argv[])
 
     Draw_database (&expression.tree);
 
-        
-    Tree dif_expression = {};
-
-    if (Tree_ctor (&dif_expression))
-        return PROCESS_ERROR (TREE_CTOR_ERR, 
-                              "Ctor tree dif_expression\n");
-    
-    Differentiate_expression (&expression.tree, &dif_expression, "a", 1);
-    
-    Draw_database (&dif_expression);
-
-
-    if (Tree_dtor (&dif_expression))
-        return PROCESS_ERROR (TREE_DTOR_ERR, 
-                              "Dtor tree dif_expression\n");
-
+    if (Expression_processing (&expression))
+        return PROCESS_ERROR (EXIT_FAILURE, "Expression processing err");
     
 
     if (Differentiator_struct_dtor (&expression))
         return PROCESS_ERROR (DIFFERENTIATOR_DTOR_ERR, 
                               "Dtor Differentiator struct expression\n");
-    
     
     #ifdef USE_LOG
         

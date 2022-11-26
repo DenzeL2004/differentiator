@@ -11,10 +11,11 @@ DIR		 = differentiation
 
 build:  obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
 		obj/differentiator.o obj/draw_tree.o obj/differentiator_tree.o 									\
-		obj/reader.o         obj/simplifier.o
+		obj/reader.o obj/simplifier.o obj/name_table.o
 
 	g++ obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
-		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o obj/reader.o obj/simplifier.o -o differ
+		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o obj/reader.o obj/simplifier.o 	\
+		obj/name_table.o -o differ
 
 
 obj/main.o: main.cpp
@@ -38,12 +39,17 @@ obj/draw_tree.o:  $(DIR)/differentiator_tree/differentiator_tree.cpp $(DIR)/diff
 
 
 
+
 obj/reader.o:  $(DIR)/differentiator_reader/reader.cpp $(DIR)/differentiator_reader/reader.h
 	g++ $(DIR)/differentiator_reader/reader.cpp -c -o obj/reader.o $(FLAGS)
 
 
 obj/simplifier.o:  $(DIR)/differentiator_simplifier/simplifier.cpp $(DIR)/differentiator_simplifier/simplifier.h
 	g++ $(DIR)/differentiator_simplifier/simplifier.cpp -c -o obj/simplifier.o $(FLAGS)
+
+
+obj/name_table.o:  $(DIR)/name_table/name_table.cpp $(DIR)/name_table/name_table.h
+	g++ $(DIR)/name_table/name_table.cpp -c -o obj/name_table.o $(FLAGS)
 
 
 

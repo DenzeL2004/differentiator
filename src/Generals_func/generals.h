@@ -50,6 +50,8 @@ enum Errors {
     ERR_PARSING             = -10,         ///< Parsing does not succeeded
     ERR_RE_ClEARING_MEMORY  = -13,
     ERR_NULLPTR             = -11,
+    ERR_FREE_MEMORY         = -14,
+    ERR_READ                = -15,
 };
 
 enum Comparison{
