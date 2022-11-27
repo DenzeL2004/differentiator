@@ -267,9 +267,9 @@ static Node* Unary_operation (int *pos, const char* expression, char* copy_expre
         return node;
     }
 
-    if (!strncmp (expression + *pos, "log", 3))
+    if (!strncmp (expression + *pos, "ln", 2))
     {
-        *pos += 3;
+        *pos += 2;
 
         node = Create_operation_node (OP_LOG, nullptr, nullptr);
 
@@ -298,7 +298,7 @@ static int Check_unary_operation (const int pos, const char* expression)
 
     if (!strncmp ((expression + pos), "cos", 3)) return 1;
 
-    if (!strncmp ((expression + pos), "log", 3)) return 1;
+    if (!strncmp ((expression + pos), "ln", 2)) return 1;
 
     return 0;
 }

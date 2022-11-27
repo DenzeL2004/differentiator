@@ -258,7 +258,6 @@ static int Simple_op_div (Node *node)
         return 1;
     }
 
-    #ifdef CALC_CONST
 
     if (IS_VAL (node->left) && IS_VAL (node->right) && !Is_zero (GET_VAL (node->right)))
     {
@@ -274,8 +273,6 @@ static int Simple_op_div (Node *node)
 
         return 1;
     }
-
-    #endif
 
     return 0;
 }

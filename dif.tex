@@ -1,0 +1,90 @@
+\documentclass[a4paper, 12pt] {article}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{multirow}
+\usepackage{mathtext}
+\usepackage[T2A]{fontenc}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{empheq}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\title{Семестровая работа по математическому анализу}
+\author{Даниил Коломийцев \thanks{спонсор В.В.Редкозубов}}
+\date{November 2022}
+\begin{document} 
+\maketitle
+\newpage
+
+Пред нами предстоит задача полностью расшарить данное выражение:
+
+\begin{math}
+ \frac { \sin (x)}{10} \cdot (x-2)^{2}
+\end{math}
+\\
+\\
+Возьмем 4-ую произадную по аргументу 'x' исходного выражения
+
+\begin{math}
+ \frac { \sin (x)}{10} \cdot (x-2)^{2}
+\end{math}
+\\
+\\
+1-ая производная:
+
+\begin{math}
+ \frac { \cos (x) \cdot 1 \cdot 10- \sin (x) \cdot 0}{10 \cdot 10} \cdot (x-2)^{2}+ \frac { \sin (x)}{10} \cdot 2 \cdot (x-2)^{1} \cdot (1-0)
+\end{math}
+\\
+\\
+Наеюсь, данный переход вас не сильно шокировал
+
+\begin{math}
+ \frac { \cos (x) \cdot 10}{100} \cdot (x-2)^{2}+ \frac { \sin (x)}{10} \cdot (x-2) \cdot 2
+\end{math}
+\\
+\\
+2-ая производная:
+
+\begin{math}
+ \frac {((-1) \cdot  \sin (x) \cdot 1 \cdot 10+ \cos (x) \cdot 0) \cdot 100- \cos (x) \cdot 10 \cdot 0}{100 \cdot 100} \cdot (x-2)^{2}+ \frac { \cos (x) \cdot 10}{100} \cdot 2 \cdot (x-2)^{1} \cdot (1-0)+ \frac { \cos (x) \cdot 1 \cdot 10- \sin (x) \cdot 0}{10 \cdot 10} \cdot (x-2) \cdot 2+ \frac { \sin (x)}{10} \cdot ((1-0) \cdot 2+(x-2) \cdot 0)
+\end{math}
+\\
+\\
+Наеюсь, данный переход вас не сильно шокировал
+
+\begin{math}
+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot (x-2)^{2}+ \frac { \cos (x) \cdot 10}{100} \cdot (x-2) \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot (x-2) \cdot 2+ \frac { \sin (x)}{10} \cdot 2
+\end{math}
+\\
+\\
+3-ая производная:
+
+\begin{math}
+ \frac {((( \cos (x) \cdot 1 \cdot (-1)+ \sin (x) \cdot 0) \cdot 10+ \sin (x) \cdot (-1) \cdot 0) \cdot 100+ \sin (x) \cdot (-1) \cdot 10 \cdot 0) \cdot 10000- \sin (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 0}{10000 \cdot 10000} \cdot (x-2)^{2}+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot 2 \cdot (x-2)^{1} \cdot (1-0)+ \frac {((-1) \cdot  \sin (x) \cdot 1 \cdot 10+ \cos (x) \cdot 0) \cdot 100- \cos (x) \cdot 10 \cdot 0}{100 \cdot 100} \cdot (x-2) \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot ((1-0) \cdot 2+(x-2) \cdot 0)+ \frac {((-1) \cdot  \sin (x) \cdot 1 \cdot 10+ \cos (x) \cdot 0) \cdot 100- \cos (x) \cdot 10 \cdot 0}{100 \cdot 100} \cdot (x-2) \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot ((1-0) \cdot 2+(x-2) \cdot 0)+ \frac { \cos (x) \cdot 1 \cdot 10- \sin (x) \cdot 0}{10 \cdot 10} \cdot 2+ \frac { \sin (x)}{10} \cdot 0
+\end{math}
+\\
+\\
+Наеюсь, данный переход вас не сильно шокировал
+
+\begin{math}
+ \frac { \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000}{1e+08} \cdot (x-2)^{2}+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot (x-2) \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot (x-2) \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot (x-2) \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot 2
+\end{math}
+\\
+\\
+4-ая производная:
+
+\begin{math}
+ \frac {(((((-1) \cdot  \sin (x) \cdot 1 \cdot (-1)+ \cos (x) \cdot 0) \cdot 10+ \cos (x) \cdot (-1) \cdot 0) \cdot 100+ \cos (x) \cdot (-1) \cdot 10 \cdot 0) \cdot 10000+ \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 0) \cdot 1e+08- \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000 \cdot 0}{1e+08 \cdot 1e+08} \cdot (x-2)^{2}+ \frac { \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000}{1e+08} \cdot 2 \cdot (x-2)^{1} \cdot (1-0)+ \frac {((( \cos (x) \cdot 1 \cdot (-1)+ \sin (x) \cdot 0) \cdot 10+ \sin (x) \cdot (-1) \cdot 0) \cdot 100+ \sin (x) \cdot (-1) \cdot 10 \cdot 0) \cdot 10000- \sin (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 0}{10000 \cdot 10000} \cdot (x-2) \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot ((1-0) \cdot 2+(x-2) \cdot 0)+ \frac {((( \cos (x) \cdot 1 \cdot (-1)+ \sin (x) \cdot 0) \cdot 10+ \sin (x) \cdot (-1) \cdot 0) \cdot 100+ \sin (x) \cdot (-1) \cdot 10 \cdot 0) \cdot 10000- \sin (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 0}{10000 \cdot 10000} \cdot (x-2) \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot ((1-0) \cdot 2+(x-2) \cdot 0)+ \frac {((-1) \cdot  \sin (x) \cdot 1 \cdot 10+ \cos (x) \cdot 0) \cdot 100- \cos (x) \cdot 10 \cdot 0}{100 \cdot 100} \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot 0+ \frac {((( \cos (x) \cdot 1 \cdot (-1)+ \sin (x) \cdot 0) \cdot 10+ \sin (x) \cdot (-1) \cdot 0) \cdot 100+ \sin (x) \cdot (-1) \cdot 10 \cdot 0) \cdot 10000- \sin (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 0}{10000 \cdot 10000} \cdot (x-2) \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot ((1-0) \cdot 2+(x-2) \cdot 0)+ \frac {((-1) \cdot  \sin (x) \cdot 1 \cdot 10+ \cos (x) \cdot 0) \cdot 100- \cos (x) \cdot 10 \cdot 0}{100 \cdot 100} \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot 0+ \frac {((-1) \cdot  \sin (x) \cdot 1 \cdot 10+ \cos (x) \cdot 0) \cdot 100- \cos (x) \cdot 10 \cdot 0}{100 \cdot 100} \cdot 2+ \frac { \cos (x) \cdot 10}{100} \cdot 0
+\end{math}
+\\
+\\
+Наеюсь, данный переход вас не сильно шокировал
+
+\begin{math}
+ \frac { \sin (x) \cdot (-1) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000 \cdot 1e+08}{1e+16} \cdot (x-2)^{2}+ \frac { \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000}{1e+08} \cdot (x-2) \cdot 2+ \frac { \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000}{1e+08} \cdot (x-2) \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot 2+ \frac { \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000}{1e+08} \cdot (x-2) \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot 2+ \frac { \cos (x) \cdot (-1) \cdot 10 \cdot 100 \cdot 10000}{1e+08} \cdot (x-2) \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot 2+ \frac { \sin (x) \cdot (-1) \cdot 10 \cdot 100}{10000} \cdot 2
+\end{math}
+\\
+\\
+
+\end{document}

@@ -49,7 +49,7 @@ int Expression_processing (Differentiator_struct *expression);
 
 
 int Differentiate_expression (Tree *math_expression, Tree *dif_expression, 
-                              const char* var, const int derivative_number);
+                              const char* var, const int derivative_number, FILE* fdout);
 
 double Calc_expression (Node *node, Name_table *name_table);
 

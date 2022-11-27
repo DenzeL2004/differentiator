@@ -11,11 +11,11 @@ DIR		 = differentiation
 
 build:  obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
 		obj/differentiator.o obj/draw_tree.o obj/differentiator_tree.o 									\
-		obj/reader.o obj/simplifier.o obj/name_table.o
+		obj/reader.o obj/simplifier.o obj/name_table.o obj/latex_print.o
 
 	g++ obj/main.o obj/tree.o obj/generals.o obj/log_errors.o obj/process_text.o obj/stack.o 			\
 		obj/differentiator.o  obj/draw_tree.o obj/differentiator_tree.o obj/reader.o obj/simplifier.o 	\
-		obj/name_table.o -o differ
+		obj/name_table.o obj/latex_print.o -o differ
 
 
 obj/main.o: main.cpp
@@ -50,6 +50,9 @@ obj/simplifier.o:  $(DIR)/differentiator_simplifier/simplifier.cpp $(DIR)/differ
 
 obj/name_table.o:  $(DIR)/name_table/name_table.cpp $(DIR)/name_table/name_table.h
 	g++ $(DIR)/name_table/name_table.cpp -c -o obj/name_table.o $(FLAGS)
+
+obj/latex_print.o:  $(DIR)/latex_print/latex_print.cpp $(DIR)/latex_print/latex_print.h
+	g++ $(DIR)/latex_print/latex_print.cpp -c -o obj/latex_print.o $(FLAGS)
 
 
 

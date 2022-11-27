@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <ctype.h> 
 #include <math.h>
+#include <time.h>
 
 
 #include "differentiator.h"
@@ -11,15 +12,15 @@
 
 #include "differentiator_reader/reader.h"
 #include "differentiator_simplifier/simplifier.h"
-
+#include "latex_print/latex_print.h"
 
 #include "differntiator_dsl.h"
 
 #include "../src/log_info/log_errors.h"
 #include "../src/Generals_func/generals.h"
 
-#include "../src/stack/stack.h"
 #include "../src/process_text/process_text.h"
+
 
 
 
@@ -83,13 +84,17 @@ int Differentiator_struct_dtor (Differentiator_struct *expression)
 int Expression_processing (Differentiator_struct *expression)
 {
     assert (expression != nullptr && "expression is nullptr");
-
+    
     Tree tmp_expression = {};
 
     if (Tree_ctor (&tmp_expression))
         return PROCESS_ERROR (TREE_CTOR_ERR, "Ctor tree tmp_expression\n");
 
     tmp_expression.root = Tree_copy (expression->tree.root);
+    
+    FILE *tex = Latex_start ();
+    Print_latex_message (tex, "Пред нами предстоит задача полностью расшарить данное выражение:\n");
+    Print_latex_tree (tex, &tmp_expression); 
 
     Print_modes ();
 
@@ -101,7 +106,7 @@ int Expression_processing (Differentiator_struct *expression)
 
         if (scanf ("%s", cur_cmd) != 1)
             return PROCESS_ERROR (PROCESS_EXPRESSION_ERR, "Error reading the operating "
-                                                    "mode of the differentiator\n");
+                                                          "mode of the differentiator\n");
             
         if (!strcmpi ("Differentiate", cur_cmd) || !strcmpi ("Di", cur_cmd))     
         {                                       
@@ -116,7 +121,7 @@ int Expression_processing (Differentiator_struct *expression)
                                      "Reading input parameters, res_scan = %d\n"
                                       "order = %d, var = %s", cur_variable);
 
-            Differentiate_expression (&expression->tree, &tmp_expression, cur_variable, order);
+            Differentiate_expression (&expression->tree, &tmp_expression, cur_variable, order, tex);
         }   
 
         else if (!strcmpi ("Draw", cur_cmd) || !strcmpi ("Dr", cur_cmd))
@@ -126,14 +131,14 @@ int Expression_processing (Differentiator_struct *expression)
         }
 
         else if (!strcmpi ("Calculate", cur_cmd) || !strcmpi ("C", cur_cmd))     
-        {                                       
+        {                                 
             double res = Calc_expression (tmp_expression.root, &expression->name_table);
-            printf ("Calculation result: %.4lg\n", res);
+            printf ("Calculation result: %.5lg\n", res);
         } 
 
         else if (!strcmpi ("Taylo", cur_cmd) || !strcmpi ("T", cur_cmd))     
         {                                       
-                   
+                   break;
         } 
 
         else if (!strcmpi ("Modes", cur_cmd) || !strcmpi ("M", cur_cmd))     
@@ -153,7 +158,7 @@ int Expression_processing (Differentiator_struct *expression)
     if (Tree_dtor (&tmp_expression))
         return PROCESS_ERROR (TREE_DTOR_ERR, "Dtor tree tmp_expression\n");
 
-
+    Latex_finish (tex);
     return 0;
 }
 
@@ -191,7 +196,7 @@ int Simplifier_expression (Tree *math_expresion)
 //======================================================================================
 
 int Differentiate_expression (Tree *math_expression, Tree *dif_expression, 
-                              const char* var, const int derivative_number)
+                              const char* var, const int derivative_number, FILE* fdout)
 {
     assert (math_expression != nullptr && "math expression is nullptr");
     assert (dif_expression  != nullptr && "dif expresion   is nullptr");
@@ -205,6 +210,11 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression,
 
     Free_differentiator_nodes_data (dif_expression->root);
     dif_expression->root = Tree_copy (math_expression->root);
+    Simplifier_expression (dif_expression);
+
+    Print_latex_message (fdout, "Возьмем %d-ую произадную по аргументу \'%s\' исходного выражения\n", 
+                                                                            derivative_number, var);     
+    Print_latex_tree (fdout, dif_expression);
 
     for (int id = 1; id <= derivative_number; id++)
     {
@@ -214,10 +224,20 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression,
 
         Free_differentiator_nodes_data (last_dif_node);
 
+        Print_latex_message (fdout, "%d-ая производная:\n", id);
+        Print_latex_tree (fdout, dif_expression);
+
         Simplifier_expression (dif_expression);
 
-        if (IS_VAL (dif_expression->root) && Is_zero (GET_VAL (dif_expression->root))) ///print id < derivative_number??
+        int id_phrase = (time (NULL)  + 3 * 60* 60) % Cnt_linking_words;
+        Print_latex_message (fdout, "%s\n", Linking_words[id_phrase]);
+        Print_latex_tree (fdout, dif_expression);
+
+        if (IS_VAL (dif_expression->root) && Is_zero (GET_VAL (dif_expression->root)))
+        {
+            Print_latex_message (fdout, "Больше %d-ой производной выражение не имеет.\n");
             break;
+        }
     }
     
     return 0;
@@ -436,8 +456,6 @@ int Load_database (Differentiator_struct *expression, const char *name_input_fil
                                                expression->input_database, expression->copy_database);
     if (result_parce)
         return PROCESS_ERROR (LOAD_DATABASE_ERR, "Parce result = %d", result_parce);
-
-    Simplifier_expression (&expression->tree);
 
     int result_init = Init_name_table (expression);
     if (result_init)
