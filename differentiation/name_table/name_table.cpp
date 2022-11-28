@@ -117,12 +117,12 @@ static int Recalloc_name_table (Name_table *name_table)
 
 //======================================================================================
 
-int Find_id_object (Name_table *name_table, const char *name_new_object) 
+int Find_id_object (Name_table *name_table, const char *name_object) 
 {
-    assert (name_table != nullptr && "name_table is nullptr");
-    assert (name_new_object != nullptr && "name_new_object is nullptr");
+    assert (name_table  != nullptr && "name_table is nullptr");
+    assert (name_object != nullptr && "name_new_object is nullptr");
 
-    int64_t new_string_hash = Get_str_hash (name_new_object);
+    int64_t new_string_hash = Get_str_hash (name_object);
 
     for (int id = 0; id < name_table->cnt_object; id++) 
     {   

@@ -6,6 +6,8 @@
 #include "differentiator_tree/differentiator_tree.h"
 #include "differentiator_tree/draw_tree.h"
 
+#include "latex_print/latex_print.h"
+
 #include "name_table/name_table.h"
 
 enum Differentiator_func_err
@@ -25,6 +27,8 @@ enum Differentiator_func_err
     GET_NAME_OBJECT_ERR         = -9,
 
     CALC_EXPRESSION_ERR         = -10,
+
+    TAYLOR_ERR                  = -11,
 };
 
 
@@ -48,10 +52,16 @@ int Differentiator_struct_dtor (Differentiator_struct *expression);
 int Expression_processing (Differentiator_struct *expression);
 
 
-int Differentiate_expression (Tree *math_expression, Tree *dif_expression, 
-                              const char* var, const int derivative_number, FILE* fdout);
+int Differentiate_expression (FILE* fdout, Tree *math_expression, Tree *dif_expression, 
+                              const char* var, const int derivative_number, const int print_mode = NOPRINT);
+
+
+int Taylor_expansion (FILE* fdout, Differentiator_struct *expression, Tree *taylor_expansion,
+                      const char* var, const int term_number, const int print_mode = NOPRINT);
+
 
 double Calc_expression (Node *node, Name_table *name_table);
+
 
 
 int Simplifier_expression (Tree *math_expresion);

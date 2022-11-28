@@ -16,6 +16,8 @@ bool Check_nullptr  (void *ptr)
 	return (ptr == nullptr);
 }
 
+//======================================================================================
+
 bool Check_num (const char *str)
 {
 	assert (str != nullptr && "str is nullptr");
@@ -33,12 +35,16 @@ bool Check_num (const char *str)
 	return 1;
 }
 
+//======================================================================================
+
 void My_flush ()
 {
 	char ch = 0;
 	while ((ch = (char)getchar()) != EOF && ch != '\n')
 			continue;
 }
+
+//======================================================================================
 
 bool Equality_double (double num1, double num2){
     is_error (isfinite (num1));
@@ -53,6 +59,8 @@ bool Is_zero (double num){
     return Equality_double (num, 0);
 }
 
+//======================================================================================
+
 double Fix_zero (double num){
     is_error (isfinite (num));
 
@@ -60,6 +68,8 @@ double Fix_zero (double num){
         return 0.0;
     return num;
 }
+
+//======================================================================================
 
 int Clear_data (unsigned char *cmd_hash_tabel, size_t size_data)
 {
@@ -71,6 +81,7 @@ int Clear_data (unsigned char *cmd_hash_tabel, size_t size_data)
     return 0;
 }
 
+//======================================================================================
 
 int Bin_represent(FILE *fpout, size_t elem, uint64_t size_elem)
 {
@@ -82,6 +93,8 @@ int Bin_represent(FILE *fpout, size_t elem, uint64_t size_elem)
 
     return 0;
 }
+
+//======================================================================================
 
 uint64_t Get_hash (const char *data, uint64_t len) 
 {
@@ -103,6 +116,8 @@ uint64_t Get_hash (const char *data, uint64_t len)
 	return hash;
 }
 
+//======================================================================================
+
 void Print_colour (char const colour[], char const *str, ...){
     printf ("%s", colour);
 
@@ -114,6 +129,8 @@ void Print_colour (char const colour[], char const *str, ...){
 
     printf ("%s", RESET);
 }
+
+//======================================================================================
 
 FILE *Open_file_ptr (const char *name_file, const char *mode)
 {
@@ -132,6 +149,8 @@ FILE *Open_file_ptr (const char *name_file, const char *mode)
     return fp;
 }
 
+//======================================================================================
+
 char Close_file_ptr (FILE *fp){
 	assert (fp != nullptr && "FILE is nullptr");
 
@@ -142,6 +161,8 @@ char Close_file_ptr (FILE *fp){
 
     return 0;
 }
+
+//======================================================================================
 
 int Open_file_discriptor (const char *name_file, const int mode){
 	assert (name_file != nullptr && "name open file is nullptr");
@@ -158,6 +179,8 @@ int Open_file_discriptor (const char *name_file, const int mode){
     return fd;
 }
 
+//======================================================================================
+
 char Close_file_discriptor (int fd){
 	assert (fd  >= 0 && "discriptor is a negative number");
 
@@ -168,6 +191,8 @@ char Close_file_discriptor (int fd){
 
     return 0;
 }
+
+//======================================================================================
 
 int My_swap (void *obj1, void *obj2, size_t size_type){                         
     assert (obj1 != NULL && "obj1 is NULL");
@@ -223,62 +248,17 @@ int My_swap (void *obj1, void *obj2, size_t size_type){
 	return 0;
 }
 
-int Parsing (int argc, const char *argv[], Options *option){
-	assert (option != nullptr && "Option is not nullptr");
+//======================================================================================
 
-    while (--argc > 0){
+int Factorial (int ord)
+{
+	if (ord < 0)
+		return Inf;
 
-        argv++;
-
-        if((*argv)[0] == '-'){
-            if (!strcmp (*argv, "-in")){
-                option->read_on_file = true;
-				
-				argv++;
-				argc--;
-
-				option->file_input_name = (const char*) (*argv);
-			}
-			else if (!strcmp (*argv, "-out")){
-                option->write_on_file = true;
-
-				argv++;
-				argc--;
-
-				option->file_output_name = (const char*) (*argv);
-			}
-            else if (!strcmp (*argv, "-h")) {
-                option->info_option = true; 
-			}
-		}
-		else{
-			fprintf (stderr, "Many other arguments\n");
-			return ERR_MANY_ARGUMENTS;
-		}
-    }
-
-    return 0;
-}
-
-int Process_parsing (Options *option){
-	assert (option != nullptr && "Option is not nullptr");
+	if (ord == 0)
+		return 1;
 	
-	if (option->info_option){
-		
-		printf ("This program supports such options\n");
-
-		printf ("-h: Reports information about all program options. Immediately exits the program when this option is run.\n");
-		printf ("-in: The text will be read from .txt file of the extension. This option is required. If you do not enter it, the program will not start.\n");
-		printf ("-out: The result will be written to a .txt file of the extension.\n");
-		
-		return 0;
-	}
-
-	if (!(option->read_on_file)){
-		printf ("You MUST enter -in, the program will not work without this flag");
-		
-		return ERR_PARSING;
-	}
-
-	return 0;
+	return ord * Factorial (ord - 1);
 }
+
+//======================================================================================

@@ -42,7 +42,7 @@ static void Write_latex_title (FILE *tex)
     
     fprintf (tex, "\\date{November 2022}\n");
 
-    fprintf (tex, "\\begin{document} \n");
+    fprintf (tex, "\\begin{document}\n");
     fprintf (tex, "\\maketitle\n");
     fprintf (tex, "\\newpage\n");
 
@@ -112,8 +112,8 @@ int Print_latex_tree (FILE *tex, Tree *expression)
     Print_latex_node (tex, expression->root, &shift);
     
     fprintf (tex, "\n\\end{math}\n");
-    fprintf (tex, "\\\\\n");
-    fprintf (tex, "\\\\\n");
+    fprintf (tex, "\\\\ \n");
+    fprintf (tex, "\\\\ \n");
 
     return 0;
 }

@@ -31,7 +31,9 @@ const char BLUE[]   =  "\033[1;36m";     ///< Blue colour
 const char GREEN[]  =  "\033[1;32m";     ///< Green colour
 const char YELLOW[] =  "\033[1;33m";     ///< Yellow colour
 
-const long double Eps = 1e-10; ///< Global constant equal to \f$\ 10^{-9}\f$
+static const long double Eps = 1e-10; ///< Global constant equal to \f$\ 10^{-9}\f$
+
+static const int Inf = 1e9+7; 
 
 /**
  * @enum Errors
@@ -173,5 +175,7 @@ char Close_file_discriptor (int fd);
  * @return Returns zero if the variables have changed values 
  */
 int My_swap (void *obj1, void *obj2, size_t size_type);
+
+int Factorial (int ord);
 
 #endif

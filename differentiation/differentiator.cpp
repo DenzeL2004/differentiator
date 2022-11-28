@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <ctype.h> 
@@ -12,7 +13,7 @@
 
 #include "differentiator_reader/reader.h"
 #include "differentiator_simplifier/simplifier.h"
-#include "latex_print/latex_print.h"
+
 
 #include "differntiator_dsl.h"
 
@@ -29,8 +30,10 @@ static Node* Differentiate_node (Node* node, const char *var);
 
 static int Init_name_table (Differentiator_struct *expression);
 
-static int Get_name_object (Node *node, Name_table *name_table);
+static int Search_name_object (Node *node, Name_table *name_table);
 
+static Node *Taylor_term (FILE *fdout, Differentiator_struct *expression, 
+                                        const char* var, const int order);
 
 static int Print_modes ();
 
@@ -93,7 +96,7 @@ int Expression_processing (Differentiator_struct *expression)
     tmp_expression.root = Tree_copy (expression->tree.root);
     
     FILE *tex = Latex_start ();
-    Print_latex_message (tex, "Пред нами предстоит задача полностью расшарить данное выражение:\n");
+    Print_latex_message (tex, "\\textbf{Пред нами предстоит задача полностью расшарить данное выражение:}\n");
     Print_latex_tree (tex, &tmp_expression); 
 
     Print_modes ();
@@ -121,7 +124,7 @@ int Expression_processing (Differentiator_struct *expression)
                                      "Reading input parameters, res_scan = %d\n"
                                       "order = %d, var = %s", cur_variable);
 
-            Differentiate_expression (&expression->tree, &tmp_expression, cur_variable, order, tex);
+            Differentiate_expression (tex, &expression->tree, &tmp_expression, cur_variable, order, PRINT);
         }   
 
         else if (!strcmpi ("Draw", cur_cmd) || !strcmpi ("Dr", cur_cmd))
@@ -136,9 +139,20 @@ int Expression_processing (Differentiator_struct *expression)
             printf ("Calculation result: %.5lg\n", res);
         } 
 
-        else if (!strcmpi ("Taylo", cur_cmd) || !strcmpi ("T", cur_cmd))     
+        else if (!strcmpi ("Taylor", cur_cmd) || !strcmpi ("T", cur_cmd))     
         {                                       
-                   break;
+            int order = 0;
+            char cur_variable[Max_command_buffer] = "";
+
+            printf ("Enter the number of the derivative and by which variable to decompose.\n"); 
+            int res_scan = scanf ("%d%s", &order, cur_variable);
+
+            if (res_scan != 2)
+                return PROCESS_ERROR (PROCESS_EXPRESSION_ERR, 
+                                     "Reading input parameters, res_scan = %d\n"
+                                      "order = %d, var = %s", cur_variable);
+
+            Taylor_expansion (tex, expression, &tmp_expression, cur_variable, order, PRINT);
         } 
 
         else if (!strcmpi ("Modes", cur_cmd) || !strcmpi ("M", cur_cmd))     
@@ -195,12 +209,13 @@ int Simplifier_expression (Tree *math_expresion)
 
 //======================================================================================
 
-int Differentiate_expression (Tree *math_expression, Tree *dif_expression, 
-                              const char* var, const int derivative_number, FILE* fdout)
+int Differentiate_expression (FILE* fdout, Tree *math_expression, Tree *dif_expression, 
+                              const char* var, const int derivative_number, const int print_mode)
 {
     assert (math_expression != nullptr && "math expression is nullptr");
     assert (dif_expression  != nullptr && "dif expresion   is nullptr");
     assert (var             != nullptr && "var is nullptr");
+    assert (fdout           != nullptr && "assert is nullptr");
 
     if (derivative_number < 0)
     {
@@ -212,10 +227,15 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression,
     dif_expression->root = Tree_copy (math_expression->root);
     Simplifier_expression (dif_expression);
 
-    Print_latex_message (fdout, "Возьмем %d-ую произадную по аргументу \'%s\' исходного выражения\n", 
-                                                                            derivative_number, var);     
-    Print_latex_tree (fdout, dif_expression);
+    if (print_mode)
+    {
+        Print_latex_message (fdout, "\\textbf{Возьмем %d-ую производную по"
+                                    " аргументу \'%s\' исходного выражения:}\n", 
+                                                         derivative_number, var);     
+        Print_latex_tree (fdout, dif_expression);
+    }
 
+    srand (time (NULL));
     for (int id = 1; id <= derivative_number; id++)
     {
         Node *last_dif_node = dif_expression->root;
@@ -224,18 +244,25 @@ int Differentiate_expression (Tree *math_expression, Tree *dif_expression,
 
         Free_differentiator_nodes_data (last_dif_node);
 
-        Print_latex_message (fdout, "%d-ая производная:\n", id);
-        Print_latex_tree (fdout, dif_expression);
+        if (print_mode)
+        {
+            Print_latex_message (fdout, "%d-ая производная:\n", id);
+            Print_latex_tree (fdout, dif_expression);
+        }
 
         Simplifier_expression (dif_expression);
 
-        int id_phrase = (time (NULL)  + 3 * 60* 60) % Cnt_linking_words;
-        Print_latex_message (fdout, "%s\n", Linking_words[id_phrase]);
-        Print_latex_tree (fdout, dif_expression);
+        if (print_mode)
+        {
+            int id_phrase = rand() % Cnt_linking_words;
+            Print_latex_message (fdout, "%s\n", Linking_words[id_phrase]);
+            Print_latex_tree (fdout, dif_expression);
+        }
 
         if (IS_VAL (dif_expression->root) && Is_zero (GET_VAL (dif_expression->root)))
         {
-            Print_latex_message (fdout, "Больше %d-ой производной выражение не имеет.\n");
+            if (print_mode)
+                Print_latex_message (fdout, "Больше %d-ой производной выражение не имеет.\n");
             break;
         }
     }
@@ -302,7 +329,7 @@ static Node* Differentiate_node (Node* node, const char *var)
                     return nullptr;
                 }
             }
-        
+
         default:
         {
             Err_report ("Unknown node type = %d\n", node_data->node_type);
@@ -312,6 +339,93 @@ static Node* Differentiate_node (Node* node, const char *var)
     }
 
     return nullptr;
+}
+
+//======================================================================================
+
+int Taylor_expansion (FILE* fdout, Differentiator_struct *expression, Tree *taylor_expansion,
+                      const char* var, const int term_number, const int print_mode)
+{
+    assert (expression       != nullptr && "expression is nullptr");
+    assert (taylor_expansion != nullptr && "taylor_expansion is nullptr");
+    assert (var              != nullptr && "var is nullptr");
+    assert (fdout            != nullptr && "assert is nullptr");
+
+    if (print_mode)
+    {
+        Print_latex_message (fdout, "\\textbf{Разложим до %d-ого члена ряда Тейлора выражение:}\n", 
+                                                                                        term_number);
+        Print_latex_tree (fdout, &expression->tree);
+    }
+
+    Free_differentiator_nodes_data (taylor_expansion->root);
+
+    taylor_expansion->root = Taylor_term (fdout, expression, var, 0);
+
+    for (int id = 1; id <= term_number; id++)
+    {
+        Node *next_term =  Taylor_term (fdout, expression, var, id);
+        taylor_expansion->root = Create_operation_node (OP_ADD, taylor_expansion->root, next_term);
+    }
+
+    Simplifier_expression (taylor_expansion);
+    
+    if (print_mode)
+    {
+        Print_latex_message (fdout, "Разложение по переменой \'%s\':\n", var);
+        Print_latex_tree (fdout, taylor_expansion);
+    }
+
+    return 0;
+}
+
+//======================================================================================
+
+static Node *Taylor_term (FILE *fdout, Differentiator_struct *expression, 
+                          const char* var, const int order)
+{
+    assert (fdout           != nullptr && "fdout is nullptr");
+    assert (expression      != nullptr && "expression is nullptr");
+    assert (var             != nullptr && "var is nullptr");
+    
+    Tree tmp_expression = {};
+
+    if (Tree_ctor (&tmp_expression))
+    {
+        PROCESS_ERROR (TREE_CTOR_ERR, "Ctor tree tmp_expression\n");
+        return nullptr;
+    }
+    
+    Differentiate_expression (fdout, &expression->tree, &tmp_expression,
+                              var, order, NOPRINT);
+    
+    double res = Calc_expression (tmp_expression.root, &expression->name_table);
+    res /= Factorial (order);
+
+    Node *coef_node = Create_value_node    (res, nullptr, nullptr);
+    Node *var_node  = Create_variable_node (var, nullptr, nullptr);
+    
+    int id_var = Find_id_object (&expression->name_table, var);
+    if (id_var == Not_init_object)
+    {
+        PROCESS_ERROR (TAYLOR_ERR, "cannot be decomposed into a variable \'%s\'\n", var);
+        return nullptr;
+    }
+    double dot_val = *((double*) expression->name_table.objects[id_var].data);
+    Node *dot_node = Create_value_node (dot_val, nullptr, nullptr);    
+
+    Node *deg_nod = Create_operation_node (OP_DEG,  Create_operation_node (OP_SUB, var_node, dot_node), 
+                                                    Create_value_node (order, nullptr, nullptr));
+
+    Node* res_node = Create_operation_node (OP_MUL, coef_node, deg_nod);
+
+    if (Tree_dtor (&tmp_expression))
+    {
+        PROCESS_ERROR (TREE_DTOR_ERR, "Dtor tree tmp_expression\n");
+        return nullptr;
+    }
+
+    return res_node;
 }
 
 //======================================================================================
@@ -470,7 +584,7 @@ static int Init_name_table (Differentiator_struct *expression)
 {
     assert (expression != nullptr && "expression is nullptr");
 
-    int result_get_name = Get_name_object (expression->tree.root, &expression->name_table);
+    int result_get_name = Search_name_object (expression->tree.root, &expression->name_table);
     if (result_get_name)
         return PROCESS_ERROR (GET_NAME_OBJECT_ERR, "Getting object names ended with %d\n", result_get_name);
 
@@ -507,17 +621,17 @@ static int Init_name_table (Differentiator_struct *expression)
 
 //======================================================================================
 
-static int Get_name_object (Node *node, Name_table *name_table)
+static int Search_name_object (Node *node, Name_table *name_table)
 {
     assert (node != nullptr && "node is nullptr");
     assert (name_table != nullptr && "name_table is nullptr");
 
     if (!Check_nullptr (node->left))
-        if (Get_name_object (node->left, name_table))
+        if (Search_name_object (node->left, name_table))
             return PROCESS_ERROR (GET_NAME_OBJECT_ERR, "left son worked incorrectly");
 
     if (!Check_nullptr (node->right))
-        if (Get_name_object (node->right, name_table))
+        if (Search_name_object (node->right, name_table))
             return PROCESS_ERROR (GET_NAME_OBJECT_ERR, "right son worked incorrectly");
 
     if (IS_VAR (node))
