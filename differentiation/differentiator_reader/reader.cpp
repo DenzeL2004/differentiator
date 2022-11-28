@@ -23,8 +23,6 @@ static Node* Get_priority          (int *pos, const char* expression, char* copy
 
 static Node* Unary_operation       (int *pos, const char* expression, char* copy_expression);
 
-static int   Check_unary_operation (const int pos, const char* expression);
-
 
 static double Get_num (int *pos, const char* expression);
 
@@ -145,7 +143,7 @@ static Node* Get_degree (int *pos, const char* expression, char* copy_expression
     assert (expression      != nullptr && "expression is nullptr");
     assert (copy_expression != nullptr && "copy_expression is nullptr");
 
-    Node* node = Get_priority (pos, expression, copy_expression);
+    Node* node = Unary_operation (pos, expression, copy_expression);
     
     while (*(expression + *pos) == '^')
     {
@@ -168,7 +166,7 @@ static Node* Get_degree (int *pos, const char* expression, char* copy_expression
             return nullptr;
         }
 
-        node->right = Get_priority (pos, expression, copy_expression);
+        node->right = Unary_operation (pos, expression, copy_expression);
         
         node = Create_operation_node (OP_DEG, node->left, node->right);
     }
@@ -199,11 +197,6 @@ static Node* Get_priority (int *pos, const char* expression, char* copy_expressi
         
         (*pos)++;
     }
-    
-    else if (Check_unary_operation (*pos, expression))
-    {
-        node = Unary_operation (pos, expression, copy_expression);
-    }
     else
     {
         char* variable = Get_var (pos, expression, copy_expression);
@@ -212,11 +205,8 @@ static Node* Get_priority (int *pos, const char* expression, char* copy_expressi
             double val = Get_num (pos, expression);
             node = Create_value_node (val, nullptr, nullptr);
         }
-
         else
-        {
             node = Create_variable_node (variable, nullptr, nullptr);
-        }
     }
 
     return node;
@@ -231,9 +221,9 @@ static Node* Unary_operation (int *pos, const char* expression, char* copy_expre
 
     Node* node = nullptr;
 
-    if (!strncmp (expression + *pos, "sin", 3))
+    if (!strncmp (expression + *pos, "sin(", 4))
     {
-        *pos += 3;
+        *pos += 4;
 
         node = Create_operation_node (OP_SIN, nullptr, nullptr);
 
@@ -244,14 +234,22 @@ static Node* Unary_operation (int *pos, const char* expression, char* copy_expre
             return nullptr;
         }
 
-        node->left = Get_priority (pos, expression, copy_expression);
+        node->left = Get_expression (pos, expression, copy_expression);
+
+        if (*(expression + *pos) != ')')
+        {
+            PROCESS_ERROR (SYNTAX_ERR, "not \')\' after \'(\', symbol = |%c|\n", *(expression + *pos));
+            return nullptr;
+        }
+        
+        (*pos)++;
         
         return node;
     }
 
-    if (!strncmp (expression + *pos, "cos", 3))
+    if (!strncmp (expression + *pos, "cos(", 4))
     {
-        *pos += 3;
+        *pos += 4;
 
         node = Create_operation_node (OP_COS, nullptr, nullptr);
 
@@ -262,14 +260,22 @@ static Node* Unary_operation (int *pos, const char* expression, char* copy_expre
             return nullptr;
         }
         
-        node->left = Get_priority (pos, expression, copy_expression);
+        node->left = Get_expression (pos, expression, copy_expression);
+
+        if (*(expression + *pos) != ')')
+        {
+            PROCESS_ERROR (SYNTAX_ERR, "not \')\' after \'(\', symbol = |%c|\n", *(expression + *pos));
+            return nullptr;
+        }
+        
+        (*pos)++;
         
         return node;
     }
 
-    if (!strncmp (expression + *pos, "ln", 2))
+    if (!strncmp (expression + *pos, "ln(", 3))
     {
-        *pos += 2;
+        *pos += 3;
 
         node = Create_operation_node (OP_LOG, nullptr, nullptr);
 
@@ -280,27 +286,22 @@ static Node* Unary_operation (int *pos, const char* expression, char* copy_expre
             return nullptr;
         }
 
-        node->left = Get_priority (pos, expression, copy_expression);
+        node->left = Get_expression (pos, expression, copy_expression);
+
+        if (*(expression + *pos) != ')')
+        {
+            PROCESS_ERROR (SYNTAX_ERR, "not \')\' after \'(\', symbol = |%c|\n", *(expression + *pos));
+            return nullptr;
+        }
+        
+        (*pos)++;
 
         return node;
     }
 
+    node = Get_priority (pos, expression, copy_expression);
+
     return node;
-}
-
-//=================================================================================================
-
-static int Check_unary_operation (const int pos, const char* expression)
-{
-    assert (expression != nullptr && "expression is nullptr");
-
-    if (!strncmp ((expression + pos), "sin", 3)) return 1;
-
-    if (!strncmp ((expression + pos), "cos", 3)) return 1;
-
-    if (!strncmp ((expression + pos), "ln", 2)) return 1;
-
-    return 0;
 }
 
 //=================================================================================================

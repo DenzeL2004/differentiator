@@ -3,6 +3,17 @@
 
 #include "../differentiator_tree/differentiator_tree.h"
 
+//===========================================
+//! G = E, '\0'
+//! E = T {[+ -] T}*
+//! T = D {[* /] D}*
+//! D = U {[^] U}*
+//! U = cos(E) | sin(E) | ln(E) | P
+//! P = (E) | N | V
+//! N = ['0' - '9']+
+//! V = ['a' - 'z' | 'A' - 'Z']+
+//===========================================
+
 enum Reader_func_err
 {
     PARCE_ERR   = -1,
