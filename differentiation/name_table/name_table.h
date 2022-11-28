@@ -59,7 +59,7 @@ int Name_table_dtor (Name_table *name_table);
 int Add_object (Name_table *name_table, const char *name_new_object, const int type);
 
 
-int Find_id_object (Name_table *name_table, const char *name_new_object);
+int Find_id_object (const Name_table *name_table, const char *name_new_object);
 
 
 int64_t Get_str_hash (const char *str);

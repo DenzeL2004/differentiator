@@ -13,11 +13,9 @@ static void Write_latex_title (FILE *tex);
 
 static int Call_latex (FILE *tex);
 
-static void Print_latex_node (FILE* tex, Node *node, int *shift);
+static void Print_latex_node (FILE* tex, const Node *node, int *shift);
 
-static void Wrap_in_brackets (FILE *tex, Node *node, int *shift);
-
-static void New_line (FILE *tex, const char *op, int *shift);
+static void Wrap_in_brackets (FILE *tex, const Node *node, int *shift);
 
 //======================================================================================
 
@@ -42,7 +40,7 @@ static void Write_latex_title (FILE *tex)
     
     fprintf (tex, "\\date{November 2022}\n");
 
-    fprintf (tex, "\\begin{document}\n");
+    fprintf (tex, "\\begin{document} \n");
     fprintf (tex, "\\maketitle\n");
     fprintf (tex, "\\newpage\n");
 
@@ -101,7 +99,7 @@ int Print_latex_message (FILE *tex, const char *format, ...)
 
 //======================================================================================
 
-int Print_latex_tree (FILE *tex, Tree *expression)
+int Print_latex_tree (FILE *tex, const Tree *expression)
 {
     assert (tex        != nullptr && "tex is nullptr");
     assert (expression != nullptr && "expression is nullptr");
@@ -112,15 +110,15 @@ int Print_latex_tree (FILE *tex, Tree *expression)
     Print_latex_node (tex, expression->root, &shift);
     
     fprintf (tex, "\n\\end{math}\n");
-    fprintf (tex, "\\\\ \n");
-    fprintf (tex, "\\\\ \n");
+    fprintf (tex, "\\\\\n");
+    fprintf (tex, "\\\\\n");
 
     return 0;
 }
 
 //======================================================================================
 
-static void Print_latex_node (FILE* tex, Node *node, int *shift) 
+static void Print_latex_node (FILE* tex, const Node *node, int *shift) 
 {
     assert (tex   != nullptr && "tex is nullptr");
     assert (node  != nullptr && "node is nullptr");
@@ -156,7 +154,6 @@ static void Print_latex_node (FILE* tex, Node *node, int *shift)
                 Print_latex_node (tex, LEFT, shift);
 
                 fprintf (tex, "+");
-               //// if (*shift >= Page_width) New_line (tex, "+", shift); 
                 
                 Print_latex_node (tex, RIGHT, shift);
                 
@@ -169,7 +166,6 @@ static void Print_latex_node (FILE* tex, Node *node, int *shift)
                 Print_latex_node (tex, LEFT, shift);
                 
                 fprintf (tex, "-");
-                //if (*shift >= Page_width) New_line (tex, "-", shift); 
                 
 
                 Print_latex_node (tex, RIGHT, shift);
@@ -190,9 +186,7 @@ static void Print_latex_node (FILE* tex, Node *node, int *shift)
                     Print_latex_node (tex, LEFT, shift);
 
                 fprintf (tex, " \\cdot "); 
-              //  if (*shift >= Page_width) {New_line (tex, " \\cdot ", shift); printf ("after: %d\n", *shift);} 
-
-                
+            
                 need_brackets = 0;
                 if (IS_OP (RIGHT) && (GET_OP (RIGHT) == OP_SUB || GET_OP (RIGHT) == OP_ADD))
                     need_brackets = 1;
@@ -275,7 +269,7 @@ static void Print_latex_node (FILE* tex, Node *node, int *shift)
 
 //======================================================================================
 
-static void Wrap_in_brackets (FILE *tex, Node *node, int *shift)
+static void Wrap_in_brackets (FILE *tex, const Node *node, int *shift)
 {
     assert (tex   != nullptr && "tex is nullptr");
     assert (node  != nullptr && "node is nullptr");
@@ -284,23 +278,6 @@ static void Wrap_in_brackets (FILE *tex, Node *node, int *shift)
     fprintf (tex, "(");
     Print_latex_node (tex, node, shift);
     fprintf (tex, ")");
-
-    return;
-}
-
-static void New_line (FILE *tex, const char *op, int *shift)
-{
-    assert (tex   != nullptr && "tex is nullptr");
-    assert (op    != nullptr && "node is nullptr");
-    assert (shift != nullptr && "shift is nullptr");
-
-    printf ("%d %s\n", *shift, op);
-
-    fprintf (tex, "\n$");
-    fprintf (tex,"\\\\");
-    fprintf (tex, "$%s", op);
-
-    *shift -= Page_width;
 
     return;
 }

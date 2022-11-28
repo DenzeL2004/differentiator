@@ -10,14 +10,14 @@
 #include "../../src/Generals_func/generals.h"
 
 
-static Node* Get_expression     (int *pos, const char* expression, char* copy_expression);
+static Node* Get_expression        (int *pos, const char* expression, char* copy_expression);
 
-static Node* Get_term     (int *pos, const char* expression, char* copy_expression);
+static Node* Get_term              (int *pos, const char* expression, char* copy_expression);
 
-static Node* Get_degree   (int *pos, const char* expression, char* copy_expression);
+static Node* Get_degree            (int *pos, const char* expression, char* copy_expression);
 
 
-static Node* Get_priority     (int *pos, const char* expression, char* copy_expression);
+static Node* Get_priority          (int *pos, const char* expression, char* copy_expression);
 
 
 

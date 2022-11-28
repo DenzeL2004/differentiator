@@ -37,4 +37,22 @@
 #define GET_OP(node)  (((Differentiator_data*) (node)->data)->data.operation)
 #define GET_VAR(node) (((Differentiator_data*) (node)->data)->data.var)
 
+#define CHANGE_DATA_ON_VAL(node, value)                                             \
+    {                                                                               \
+        ((Differentiator_data*) (node)->data)->node_type = VALUE_T;                 \
+        ((Differentiator_data*) (node)->data)->data.val  = (value);                 \
+    }while(0)
+
+#define CHANGE_DATA_ON_VAR(node, variable)                                          \   
+    {                                                                               \
+        ((Differentiator_data*) (node)->data)->node_type = VARIABLE_T;              \
+        ((Differentiator_data*) (node)->data)->data.var  = (variable);              \
+    }while (0)
+
+#define CHANGE_DATA_ON_OP(node, op)                                                 \
+    {                                                                               \
+        ((Differentiator_data*) (node)->data)->node_type       = OPERATION_T;       \
+        ((Differentiator_data*) (node)->data)->data.operation  = (op);              \
+    }while (0)   
+
 #endif //_DIFFERENTIATOR_DSL_H_

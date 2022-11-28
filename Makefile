@@ -28,7 +28,7 @@ obj/differentiator.o: $(DIR)/differentiator.cpp $(DIR)/differentiator.h 				\
 
 
 
-obj/differentiator_tree.o: $(DIR)/differentiator.h 		  $(DIR)/differentiator_tree/differentiator_tree.cpp  	\
+obj/differentiator_tree.o: $(DIR)/differentiator.h  $(DIR)/differentiator_tree/differentiator_tree.cpp  	\
 						   $(DIR)/operation_list.h  $(DIR)/differentiator_tree/differentiator_tree.h		
 	g++ $(DIR)/differentiator_tree/differentiator_tree.cpp -c -o obj/differentiator_tree.o $(FLAGS)
 
@@ -53,6 +53,7 @@ obj/name_table.o:  $(DIR)/name_table/name_table.cpp $(DIR)/name_table/name_table
 
 obj/latex_print.o:  $(DIR)/latex_print/latex_print.cpp $(DIR)/latex_print/latex_print.h
 	g++ $(DIR)/latex_print/latex_print.cpp -c -o obj/latex_print.o $(FLAGS)
+
 
 
 

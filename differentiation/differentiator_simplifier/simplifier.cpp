@@ -16,22 +16,11 @@
 
 static int Simplification_node  (Node* node);
 
+static int Convolution_of_constants (Node* node);
 
-static int Simple_op_mul        (Node *node);
+static int Neutral_element_removal  (Node *node);
 
-static int Simple_op_add        (Node *node);
-
-static int Simple_op_sub        (Node *node);
-
-static int Simple_op_div        (Node *node);
-
-static int Simple_op_deg        (Node *node);
-
-static int Simple_op_sin        (Node *node);
-
-static int Simple_op_cos        (Node *node);
-
-static int Simple_op_log        (Node* node);
+static int Is_given_value_node (const Node *node, double val);
 
 //======================================================================================
 
@@ -48,11 +37,13 @@ int Simplifier (Node* node)
         changed |= Simplifier (node->left);
 
     if (!Check_nullptr (node->right))
-    {
         changed |= Simplifier (node->right);
-    }
 
-    changed |= Simplification_node (node);
+    #ifdef FAST_SIMPLIFIER
+                      changed |= Simplification_node (node);
+    #else
+        if (!changed) changed |= Simplification_node (node);
+    #endif
 
     return changed;
 }   
@@ -63,397 +54,191 @@ static int Simplification_node (Node* node)
 {
     assert (node != nullptr && "null is nullptr");  
 
+    int changed = 0;
+
+    changed |= Neutral_element_removal  (node);
+    
+    changed |= Convolution_of_constants (node);
+
+    return changed;
+}
+
+//======================================================================================
+
+static int Neutral_element_removal (Node *node)
+{
+    assert (node != nullptr && "null is nullptr");
+
     if (IS_OP (node))
     {
-        if (GET_OP (node) == OP_MUL)
-            return Simple_op_mul (node);
+        if (Is_given_value_node (node->right, 0.0))
+        {
+            if (GET_OP (node) == OP_ADD || GET_OP (node) == OP_SUB)
+            {   
+                Node *node_cpy = Tree_copy (node->left);
+                My_swap (node, node_cpy, sizeof (Node));
+                Free_differentiator_nodes_data (node_cpy);
 
-        if (GET_OP (node) == OP_ADD)
-            return Simple_op_add (node);
+                return 1;
+            }
 
-        if (GET_OP (node) == OP_SUB)
-            return Simple_op_sub (node);
+            if (GET_OP (node) == OP_MUL || GET_OP (node) == OP_DEG)
+            {
+                Free_differentiator_nodes_data (node->left);
+                Free_differentiator_nodes_data (node->right);
+                
+                node->left  = nullptr;
+                node->right = nullptr;
 
-        if (GET_OP (node) == OP_DIV)
-            return Simple_op_div (node);
+                if (GET_OP (node) == OP_MUL) CHANGE_DATA_ON_VAL (node, 0.0);
+                if (GET_OP (node) == OP_DEG) CHANGE_DATA_ON_VAL (node, 1.0);
+                
+                return 1;
+            }
+        }
 
-        if (GET_OP (node) == OP_DEG)
-            return Simple_op_deg (node);
-
-        if (GET_OP (node) == OP_SIN)
-            return Simple_op_sin (node);
-
-        if (GET_OP (node) == OP_COS)
-            return Simple_op_cos (node);
-
-        if (GET_OP (node) == OP_LOG)
-            return Simple_op_log (node);
-    }
-
-    return 0;
-}
-
-//======================================================================================
-
-static int Simple_op_add (Node *node)
-{
-    assert (node != nullptr && "null is nullptr"); 
-
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-
-    if (IS_VAL (node->left))
-    {
-        Node* tmp_node = node->left;
-        node->left = node->right;
-        node->right = tmp_node;
-    }
-
-    if (IS_VAL (node->right) && Is_zero (GET_VAL (node->right)))
-    {
-    
-        Node *node_cpy = Tree_copy (node->left);
-    
-        My_swap (node, node_cpy, sizeof (Node));
-
-        Free_differentiator_nodes_data (node_cpy);
-    
-        return 1;
-    }
-
-
-    if (IS_VAL (node->left) && IS_VAL (node->right))
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = GET_VAL (node->left) + GET_VAL (node->right);
-
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    return 0;
-}
-
-//======================================================================================
-
-static int Simple_op_sub (Node *node)
-{
-    assert (node != nullptr && "null is nullptr"); 
-
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-
-    if (IS_VAL (node->right) && Is_zero (GET_VAL (node->right)))
-    {
-    
-        Node *node_cpy = Tree_copy (node->left);
-    
-        My_swap (node, node_cpy, sizeof (Node));
-
-        Free_differentiator_nodes_data (node_cpy);
-    
-        return 1;
-    }
-
-
-    if (IS_VAL (node->left) && IS_VAL (node->right))
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = GET_VAL (node->left) - GET_VAL (node->right);
-
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    return 0;
-}
-
-//======================================================================================
-
-static int Simple_op_mul (Node *node)
-{
-    assert (node != nullptr && "null is nullptr"); 
-
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-
-    if (IS_VAL (node->left))
-    {
-        Node* tmp_node = node->left;
-        node->left = node->right;
-        node->right = tmp_node;
-    }
-
-    if (IS_VAL (node->right) && Is_zero (GET_VAL (node->right)))
-    {
-    
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
+        if (Is_given_value_node (node->right, 1))
+        {
+            if (GET_OP (node) == OP_MUL || GET_OP (node) == OP_DEG || GET_OP (node) == OP_SUB)
+            {
+                Node *node_cpy = Tree_copy (node->left);
+                My_swap (node, node_cpy, sizeof (Node));
+                Free_differentiator_nodes_data (node_cpy);
         
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = 0;
+                return 1;
+            }
+        }
 
-        node->left  = nullptr;
-        node->right = nullptr;
-    
-        return 1;
-    }
+        if (Is_given_value_node (node->left, 0))
+        {
+            if (GET_OP (node) == OP_ADD)
+            {
+                Node *node_cpy = Tree_copy (node->right);
+                My_swap (node, node_cpy, sizeof (Node));
+                Free_differentiator_nodes_data (node_cpy);
 
+                return 1;
+            }
 
-    if (IS_VAL (node->right) && Equality_double (GET_VAL (node->right), 1.0))
-    {
-        Node *node_cpy = Tree_copy (node->left);
-    
-        My_swap (node, node_cpy, sizeof (Node));
+            if (GET_OP (node) == OP_MUL || GET_OP (node) == OP_DEG || GET_OP (node) == OP_SUB)
+            {
+                Free_differentiator_nodes_data (node->left);
+                Free_differentiator_nodes_data (node->right);
+                
+                node->left  = nullptr;
+                node->right = nullptr;
 
-        Free_differentiator_nodes_data (node_cpy);
-    
-        return 1;
-    }
+                CHANGE_DATA_ON_VAL (node, 0.0);
 
-    if (IS_VAL (node->left) && IS_VAL (node->right))
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = GET_VAL (node->left) * GET_VAL (node->right);
+                return 1;
+            }
 
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
+        }
 
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    return 0;
-}
-
-//======================================================================================
-
-static int Simple_op_div (Node *node)
-{
-    assert (node != nullptr && "null is nullptr"); 
-
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-    
-    if (IS_VAL (node->right) && Equality_double (GET_VAL (node->right), 1.0))
-    {
-        Node *node_cpy = Tree_copy (node->left);
-    
-        My_swap (node, node_cpy, sizeof (Node));
-
-        Free_differentiator_nodes_data (node_cpy);
-    
-        return 1;
-    }
-
-
-    if (IS_VAL (node->left) && IS_VAL (node->right) && !Is_zero (GET_VAL (node->right)))
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = GET_VAL (node->left) / GET_VAL (node->right);
-
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    return 0;
-}
-
-//======================================================================================
-
-static int Simple_op_deg (Node *node)
-{
-    assert (node != nullptr && "null is nullptr"); 
-
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-    
-    if (IS_VAL (node->right) && Is_zero (GET_VAL (node->right)))
-    {
-    
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
+        if (Is_given_value_node (node->left, 1))
+        {
+            if (GET_OP (node) == OP_MUL)
+            {
+                Node *node_cpy = Tree_copy (node->right);
+                My_swap (node, node_cpy, sizeof (Node));
+                Free_differentiator_nodes_data (node_cpy);
         
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = 1;
+                return 1;
+            }
 
-        node->left  = nullptr;
-        node->right = nullptr;
+            if (GET_OP (node) == OP_DEG)
+            {
+                
+                Free_differentiator_nodes_data (node->left);
+                Free_differentiator_nodes_data (node->right);
+                
+                node->left  = nullptr;
+                node->right = nullptr;
 
-        return 1;
+                CHANGE_DATA_ON_VAL (node, 1.0);
+
+                return 1;
+            }
+        }
     }
-
-    if (IS_VAL (node->right) && Equality_double (GET_VAL (node->right), 1.0))
-    {
-        Node *node_cpy = Tree_copy (node->left);
-    
-        My_swap (node, node_cpy, sizeof (Node));
-
-        Free_differentiator_nodes_data (node_cpy);
-    
-        return 1;
-    }
-
-    if (IS_VAL (node->left) && Is_zero (GET_VAL (node->left)))
-    {
-    
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-        
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = 0;
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    if (IS_VAL (node->left) && Equality_double (GET_VAL (node->left), 1.0))
-    {
-    
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-        
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = 1;
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    #ifdef CALC_CONST
-
-    if (IS_VAL (node->left) && IS_VAL (node->right))
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = pow (GET_VAL (node->left), GET_VAL (node->right));
-
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    #endif
 
     return 0;
 }
 
 //======================================================================================
 
-static int Simple_op_sin (Node *node)
+static int Is_given_value_node (const Node *node, double val)
 {
-    assert (node != nullptr && "null is nullptr"); 
-
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-    
-    #ifdef CALC_CONST
-
-    if (IS_VAL (node->left))
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = sin (GET_VAL (node->left));
-
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    #endif
-
-    return 0;
+    return (!Check_nullptr ((char*) node) && IS_VAL (node) && Equality_double (GET_VAL (node), val));
 }
 
 //======================================================================================
 
-static int Simple_op_cos (Node *node)
+static int Convolution_of_constants (Node* node)
 {
-    assert (node != nullptr && "null is nullptr"); 
+    assert (node != nullptr && "null is nullptr");  
+ 
+    if (IS_OP (node))
+    {   
+        if (IS_VAL (node->left) && (!Check_nullptr (node->right) && IS_VAL (node->right)))
+        {
+            double val_l = GET_VAL (node->left), val_r = GET_VAL (node->right);
+            double res_val = NAN;
 
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-    
-    #ifdef CALC_CONST
+            if (GET_OP (node) == OP_MUL)
+                res_val = val_l * val_r;        
 
-    if (IS_VAL (node->left))
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = cos (GET_VAL (node->left));
+            if (GET_OP (node) == OP_ADD)
+                res_val = val_l + val_r; 
 
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
+            if (GET_OP (node) == OP_SUB)
+                res_val = val_l - val_r; 
 
-        node->left  = nullptr;
-        node->right = nullptr;
+            if (GET_OP (node) == OP_DIV)
+                if (!Is_zero (val_r)) 
+                    res_val = val_l / val_r; 
 
-        return 1;
+            if (GET_OP (node) == OP_DEG)
+                res_val = powl (val_l, val_r); 
+
+            CHANGE_DATA_ON_VAL (node, res_val);
+
+            Free_differentiator_nodes_data (node->left);
+            Free_differentiator_nodes_data (node->right);
+
+            node->left  = nullptr;
+            node->right = nullptr;
+
+            return 1;
+        }
+
+        #ifdef CALC_CONST
+            if (IS_VAL (node->left) && Check_nullptr (node->right))
+            {
+                double val_l = GET_VAL (node->left);
+                double res_val = NAN;
+
+                if (GET_OP (node) == OP_SIN)
+                    res_val = sin (val_l);
+
+                if (GET_OP (node) == OP_COS)
+                    res_val = cos (val_l);
+
+                if (GET_OP (node) == OP_LOG)
+                    if (!Is_zero (val_l) && val_l > 0.0)
+                        res_val = log (val_l);
+
+                
+                CHANGE_DATA_ON_VAL (node, res_val);
+
+                Free_differentiator_nodes_data (node->left);
+
+                node->left  = nullptr;
+
+                return 1;
+            }
+        #endif
     }
-
-    #endif
 
     return 0;
 }
-
-//======================================================================================
-
-static int Simple_op_log (Node *node)
-{
-    assert (node != nullptr && "null is nullptr"); 
-
-    Differentiator_data *node_data = (Differentiator_data*) node->data;
-    
-    #ifdef CALC_CONST
-
-    if (IS_VAL (node->left) && !Is_zero (GET_VAL (node->left)) && GET_VAL (node->left) > 0.0)
-    {
-        node_data->node_type      = VALUE_T;
-        node_data->data.operation = OP_UNKNOWN;
-        node_data->data.val       = log (GET_VAL (node->left));
-
-        Free_differentiator_nodes_data (node->left);
-        Free_differentiator_nodes_data (node->right);
-
-        node->left  = nullptr;
-        node->right = nullptr;
-
-        return 1;
-    }
-
-    #endif
-
-    return 0;
-}
-
-//======================================================================================

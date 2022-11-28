@@ -117,7 +117,7 @@ static int Recalloc_name_table (Name_table *name_table)
 
 //======================================================================================
 
-int Find_id_object (Name_table *name_table, const char *name_object) 
+int Find_id_object (const Name_table *name_table, const char *name_object) 
 {
     assert (name_table  != nullptr && "name_table is nullptr");
     assert (name_object != nullptr && "name_new_object is nullptr");

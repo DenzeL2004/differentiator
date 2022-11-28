@@ -14,6 +14,8 @@
 #include "differentiator_reader/reader.h"
 #include "differentiator_simplifier/simplifier.h"
 
+#include "latex_print/latex_print.h"
+
 
 #include "differntiator_dsl.h"
 
@@ -25,14 +27,15 @@
 
 
 
-static Node* Differentiate_node (Node* node, const char *var);
+static Node* Differentiate_node (const Node* node, const char *var);
 
 
-static int Init_name_table (Differentiator_struct *expression);
+static int Init_name_table     (Differentiator_struct *expression);
 
 static int Search_name_object (Node *node, Name_table *name_table);
 
-static Node *Taylor_term (FILE *fdout, Differentiator_struct *expression, 
+
+static Node *Taylor_term (FILE *fdout, const Differentiator_struct *expression, 
                                         const char* var, const int order);
 
 static int Print_modes ();
@@ -84,7 +87,7 @@ int Differentiator_struct_dtor (Differentiator_struct *expression)
 
 //======================================================================================
 
-int Expression_processing (Differentiator_struct *expression)
+int Expression_processing (const Differentiator_struct *expression)
 {
     assert (expression != nullptr && "expression is nullptr");
     
@@ -197,19 +200,27 @@ static int Print_modes ()
 
 //======================================================================================
 
-int Simplifier_expression (Tree *math_expresion)
+int Simplifier_expression (FILE *fdout, Tree *math_expresion, const int print_mode)
 {
     assert (math_expresion != nullptr && "math expression is nullptr");
 
     while (Simplifier (math_expresion->root))
+    {
+        if (print_mode)
+        {
+            int id_phrase = rand() % Cnt_linking_words;
+            Print_latex_message (fdout, "%s\n", Linking_words[id_phrase]);
+            Print_latex_tree (fdout, math_expresion);
+        }
         continue;
+    }
 
     return 0;
 }
 
 //======================================================================================
 
-int Differentiate_expression (FILE* fdout, Tree *math_expression, Tree *dif_expression, 
+int Differentiate_expression (FILE* fdout, const Tree *math_expression, Tree *dif_expression, 
                               const char* var, const int derivative_number, const int print_mode)
 {
     assert (math_expression != nullptr && "math expression is nullptr");
@@ -225,7 +236,8 @@ int Differentiate_expression (FILE* fdout, Tree *math_expression, Tree *dif_expr
 
     Free_differentiator_nodes_data (dif_expression->root);
     dif_expression->root = Tree_copy (math_expression->root);
-    Simplifier_expression (dif_expression);
+   
+    Simplifier_expression (fdout, dif_expression);
 
     if (print_mode)
     {
@@ -250,19 +262,13 @@ int Differentiate_expression (FILE* fdout, Tree *math_expression, Tree *dif_expr
             Print_latex_tree (fdout, dif_expression);
         }
 
-        Simplifier_expression (dif_expression);
+        Simplifier_expression (fdout, dif_expression, PRINT);
 
-        if (print_mode)
-        {
-            int id_phrase = rand() % Cnt_linking_words;
-            Print_latex_message (fdout, "%s\n", Linking_words[id_phrase]);
-            Print_latex_tree (fdout, dif_expression);
-        }
-
+        
         if (IS_VAL (dif_expression->root) && Is_zero (GET_VAL (dif_expression->root)))
         {
             if (print_mode)
-                Print_latex_message (fdout, "Больше %d-ой производной выражение не имеет.\n");
+                Print_latex_message (fdout, "Больше %d-ой производной выражение не имеет.\\\\\n");
             break;
         }
     }
@@ -272,7 +278,7 @@ int Differentiate_expression (FILE* fdout, Tree *math_expression, Tree *dif_expr
 
 //======================================================================================
 
-static Node* Differentiate_node (Node* node, const char *var)
+static Node* Differentiate_node (const Node* node, const char *var)
 {
     assert (node != nullptr && "node is nullptr");
     assert (var  != nullptr && "var  is nullptr");
@@ -343,7 +349,7 @@ static Node* Differentiate_node (Node* node, const char *var)
 
 //======================================================================================
 
-int Taylor_expansion (FILE* fdout, Differentiator_struct *expression, Tree *taylor_expansion,
+int Taylor_expansion (FILE* fdout, const Differentiator_struct *expression, Tree *taylor_expansion,
                       const char* var, const int term_number, const int print_mode)
 {
     assert (expression       != nullptr && "expression is nullptr");
@@ -368,7 +374,7 @@ int Taylor_expansion (FILE* fdout, Differentiator_struct *expression, Tree *tayl
         taylor_expansion->root = Create_operation_node (OP_ADD, taylor_expansion->root, next_term);
     }
 
-    Simplifier_expression (taylor_expansion);
+    Simplifier_expression (fdout, taylor_expansion, PRINT);
     
     if (print_mode)
     {
@@ -381,7 +387,7 @@ int Taylor_expansion (FILE* fdout, Differentiator_struct *expression, Tree *tayl
 
 //======================================================================================
 
-static Node *Taylor_term (FILE *fdout, Differentiator_struct *expression, 
+static Node *Taylor_term (FILE *fdout, const Differentiator_struct *expression, 
                           const char* var, const int order)
 {
     assert (fdout           != nullptr && "fdout is nullptr");
@@ -430,7 +436,7 @@ static Node *Taylor_term (FILE *fdout, Differentiator_struct *expression,
 
 //======================================================================================
 
-double Calc_expression (Node *node, Name_table *name_table)
+double Calc_expression (const Node *node, const Name_table *name_table)
 {
     assert (node       != nullptr && "node is nullptr");
     assert (name_table != nullptr && "name_table is nullptr");

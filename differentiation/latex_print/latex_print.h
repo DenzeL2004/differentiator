@@ -1,5 +1,5 @@
-#ifndef _LATEX_PRINT_H_
-#undef  _LATEX_PRINT_H_
+#ifndef  _LATEX_PRINT_H_
+#define  _LATEX_PRINT_H_
 
 #include "stdint.h"
 
@@ -11,7 +11,7 @@ static const char *Linking_words[] =
 {
     "Следовательно",
     "Внимательный чиатель мог заметить, что",
-    "После упрощения получим"
+    "После упрощения получим",
     "Очевидно, что",
     "По теорее 1.2.1334323123 Кантора-Вейрштрасса-Буньяковского-Борелли, следует, что",
     "Несложно заметить, что",
@@ -20,9 +20,22 @@ static const char *Linking_words[] =
     "По анологии с задачей 2.34.23434",
     "Кок, кок, кок и все",
     "Шлеп, шлеп, шлеп, получим",
+    "По лунному календарю Мая было предсказанно, что",
+    "Гадалка прошептала наухо и я прозрел, что",
+    "Мур, мур, мур",
+    "Лист LaTex-а был настолько мал, что полное преобразование не смогло влесть, поэтому запишим лишь часть",
+    "Об этом и нечего говорить",
+    "Теорема Коши дай мне сил завершить преобразование",
+    "Рассмотрим лишь последнюю часть выражения",
+    "Будем считать, что все поняли",
+    "-Тук, тук\n"
+    "-Кто там?\n"
+    "-МАТАААААААН", 
+    "Здесь могло быть что-то креативное, но у автора кончились идеи",
+    "Джони, упрощения на деревьях, они на деревьях"
 };
 
-static const int Cnt_linking_words = sizeof (Linking_words) / sizeof (char*);
+static const int Cnt_linking_words = sizeof (Linking_words) / sizeof (Linking_words[0]);
 
 enum Print_latex_mode
 {
@@ -35,13 +48,13 @@ enum Tex_func_err
     CREAT_TEX_FILE_ERR =    -1,
 };
 
-FILE* Latex_start  ();
+FILE* Latex_start ();
 
 int Latex_finish (FILE *tex);
 
 
 int Print_latex_message (FILE *tex, const char *format, ...);
 
-int Print_latex_tree (FILE *tex, Tree *expression);
+int Print_latex_tree    (FILE *tex, const Tree *expression);
 
 #endif //#endif _LATEX_PRINT_H_

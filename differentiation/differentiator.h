@@ -49,22 +49,22 @@ int Differentiator_struct_ctor (Differentiator_struct *expression);
 int Differentiator_struct_dtor (Differentiator_struct *expression);
 
 
-int Expression_processing (Differentiator_struct *expression);
+int Expression_processing      (const Differentiator_struct *expression);
 
 
-int Differentiate_expression (FILE* fdout, Tree *math_expression, Tree *dif_expression, 
+int Differentiate_expression (FILE* fdout, const Tree *math_expression, Tree *dif_expression, 
                               const char* var, const int derivative_number, const int print_mode = NOPRINT);
 
 
-int Taylor_expansion (FILE* fdout, Differentiator_struct *expression, Tree *taylor_expansion,
+int Taylor_expansion (FILE* fdout, const Differentiator_struct *expression, Tree *taylor_expansion,
                       const char* var, const int term_number, const int print_mode = NOPRINT);
 
 
-double Calc_expression (Node *node, Name_table *name_table);
+double Calc_expression (const Node *node, const Name_table *name_table);
 
 
 
-int Simplifier_expression (Tree *math_expresion);
+int Simplifier_expression (FILE *fdout, Tree *math_expresion, const int print_mode = NOPRINT);
 
 
 int Draw_database (Tree *tree, const int node_mode = Mask_draw_node_modes);
