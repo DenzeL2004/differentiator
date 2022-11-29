@@ -6,6 +6,7 @@
 #include <ctype.h> 
 #include <math.h>
 #include <time.h>
+#include <locale.h>
 
 
 #include "differentiator.h"
@@ -612,8 +613,14 @@ static int Draw_function_graph (FILE *fdout, const Tree *math_expression,
     if (Check_nullptr (gnu_cmd))
         return PROCESS_ERROR (CREAT_FUNC_DATA_ERR, "The file for writing function values did not Open\n");
 
-    fprintf (gnu_cmd, "set xrange [-10:10]\n");
-    fprintf (gnu_cmd, "set yrange [-100:100]\n");
+    char command[Max_command_buffer] = "";
+    
+    sprintf (command, "set xrange [-%d:%d]\n", Image_width, Image_width);
+    fprintf (gnu_cmd, command);
+
+    sprintf (command, "set yrange [-%d:%d]\n", Image_height, Image_height);
+    fprintf (gnu_cmd, command);
+
     fprintf (gnu_cmd, "set terminal png\n");
     fprintf (gnu_cmd, "set output \"func_graph.png\"\n");
     fprintf (gnu_cmd, "plot \"data.txt\" title \"function\" with lines\n");
@@ -645,11 +652,13 @@ static int Creat_func_data_file (const Tree *math_expression, Name_table *name_t
 
 
     double original_val = *((double*) name_table->objects[id_var].data);
-    for (int cv = -Image_width; cv <= Image_width; cv++)
+    for (int cv = -Image_width * Accuracy; cv <= Image_width * Accuracy; cv++)
     {
-        *((double*) name_table->objects[id_var].data) = cv;
-        fprintf (fp_data, "%d %.8lg\n", cv, Calc_expression (math_expression->root, name_table));
+        double cx = (double) ((double) cv / Accuracy);
+        *((double*) name_table->objects[id_var].data) = cx;
+        fprintf (fp_data, "%.8lg %.8lg\n", cx, Calc_expression (math_expression->root, name_table));
     }
+
 
     *((double*) name_table->objects[id_var].data) = original_val;
 

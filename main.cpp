@@ -9,7 +9,6 @@
 
 int main (int argc, char *argv[])
 {   
-    setlocale(LC_ALL, "Russian");
     
     #ifdef USE_LOG
         
@@ -43,7 +42,6 @@ int main (int argc, char *argv[])
             return -1;
     }
 
-    //Draw_database (&expression.tree);
 
     if (Expression_processing (&expression))
         return PROCESS_ERROR (EXIT_FAILURE, "Expression processing err");

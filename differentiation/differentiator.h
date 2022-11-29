@@ -12,7 +12,9 @@
 
 
 static const int Image_width  = 10;
-static const int Image_height = 100;
+static const int Image_height = 2;
+
+static const int Accuracy     = 10000;
 
 
 enum Differentiator_func_err
