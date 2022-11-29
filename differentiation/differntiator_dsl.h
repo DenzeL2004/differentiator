@@ -3,6 +3,33 @@
 
 #define CREATE_VAL(val) Create_value_node ((val), nullptr, nullptr)
 
+#define CHANGE_DATA_ON_VAL(node, value)                                             \
+    {                                                                               \
+        ((Differentiator_data*) (node)->data)->node_type = VALUE_T;                 \
+        ((Differentiator_data*) (node)->data)->data.val  = (value);                 \
+    }while(0)
+
+#define CHANGE_DATA_ON_VAR(node, variable)                                          \   
+    {                                                                               \
+        ((Differentiator_data*) (node)->data)->node_type = VARIABLE_T;              \
+        ((Differentiator_data*) (node)->data)->data.var  = (variable);              \
+    }while (0)
+
+#define CHANGE_DATA_ON_OP(node, op)                                                 \
+    {                                                                               \
+        ((Differentiator_data*) (node)->data)->node_type       = OPERATION_T;       \
+        ((Differentiator_data*) (node)->data)->data.operation  = (op);              \
+    }while (0)   
+
+
+
+#define IS_VAL(node) (((Differentiator_data*) (node)->data)->node_type == VALUE_T)
+#define IS_OP(node)  (((Differentiator_data*) (node)->data)->node_type == OPERATION_T)
+#define IS_VAR(node) (((Differentiator_data*) (node)->data)->node_type == VARIABLE_T)
+
+#define IS_NOT_VAL(node) (IS_OP(node) || IS_VAR(node))
+
+
 #define LEFT    node->left
 #define RIGHT   node->right
 
@@ -27,32 +54,9 @@
 
 #define LOG(left)  Create_operation_node (OP_LOG, left, nullptr)
 
-#define IS_VAL(node) (((Differentiator_data*) (node)->data)->node_type == VALUE_T)
-#define IS_OP(node)  (((Differentiator_data*) (node)->data)->node_type == OPERATION_T)
-#define IS_VAR(node) (((Differentiator_data*) (node)->data)->node_type == VARIABLE_T)
-
-#define IS_FUNC(node) (IS_OP(node) || IS_VAR(node))
-
 #define GET_VAL(node) (((Differentiator_data*) (node)->data)->data.val)
 #define GET_OP(node)  (((Differentiator_data*) (node)->data)->data.operation)
 #define GET_VAR(node) (((Differentiator_data*) (node)->data)->data.var)
 
-#define CHANGE_DATA_ON_VAL(node, value)                                             \
-    {                                                                               \
-        ((Differentiator_data*) (node)->data)->node_type = VALUE_T;                 \
-        ((Differentiator_data*) (node)->data)->data.val  = (value);                 \
-    }while(0)
-
-#define CHANGE_DATA_ON_VAR(node, variable)                                          \   
-    {                                                                               \
-        ((Differentiator_data*) (node)->data)->node_type = VARIABLE_T;              \
-        ((Differentiator_data*) (node)->data)->data.var  = (variable);              \
-    }while (0)
-
-#define CHANGE_DATA_ON_OP(node, op)                                                 \
-    {                                                                               \
-        ((Differentiator_data*) (node)->data)->node_type       = OPERATION_T;       \
-        ((Differentiator_data*) (node)->data)->data.operation  = (op);              \
-    }while (0)   
 
 #endif //_DIFFERENTIATOR_DSL_H_

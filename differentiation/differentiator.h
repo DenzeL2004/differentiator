@@ -10,6 +10,11 @@
 
 #include "name_table/name_table.h"
 
+
+static const int Image_width  = 10;
+static const int Image_height = 100;
+
+
 enum Differentiator_func_err
 {
     DIFFERENTIATOR_CTOR_ERR     = -1,
@@ -29,6 +34,10 @@ enum Differentiator_func_err
     CALC_EXPRESSION_ERR         = -10,
 
     TAYLOR_ERR                  = -11,
+    TANGENT_EQUATION_ERR        = -12,
+
+    CREAT_FUNC_DATA_ERR         = -13,
+    USE_GNUPLOT_ERR             = -14,
 };
 
 
@@ -49,7 +58,7 @@ int Differentiator_struct_ctor (Differentiator_struct *expression);
 int Differentiator_struct_dtor (Differentiator_struct *expression);
 
 
-int Expression_processing      (const Differentiator_struct *expression);
+int Expression_processing      (Differentiator_struct *expression);
 
 
 int Differentiate_expression (FILE* fdout, const Tree *math_expression, Tree *dif_expression, 
@@ -60,11 +69,16 @@ int Taylor_expansion (FILE* fdout, const Differentiator_struct *expression, Tree
                       const char* var, const int term_number, const int print_mode = NOPRINT);
 
 
+int Tangent_equation (FILE* fdout, const Differentiator_struct *expression, Tree *tangent_equation,
+                                                              const char* var, const int print_mode =NOPRINT);
+
+
 double Calc_expression (const Node *node, const Name_table *name_table);
 
 
 
 int Simplifier_expression (FILE *fdout, Tree *math_expresion, const int print_mode = NOPRINT);
+
 
 
 int Draw_database (Tree *tree, const int node_mode = Mask_draw_node_modes);

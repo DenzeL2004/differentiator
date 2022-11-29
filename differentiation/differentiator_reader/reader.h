@@ -3,6 +3,7 @@
 
 #include "../differentiator_tree/differentiator_tree.h"
 
+
 //===========================================
 //! G = E, '\0'
 //! E = T {[+ -] T}*

@@ -20,7 +20,6 @@ static Node* Get_degree            (int *pos, const char* expression, char* copy
 static Node* Get_priority          (int *pos, const char* expression, char* copy_expression);
 
 
-
 static Node* Unary_operation       (int *pos, const char* expression, char* copy_expression);
 
 
@@ -298,6 +297,7 @@ static Node* Unary_operation (int *pos, const char* expression, char* copy_expre
 
         return node;
     }
+
 
     node = Get_priority (pos, expression, copy_expression);
 

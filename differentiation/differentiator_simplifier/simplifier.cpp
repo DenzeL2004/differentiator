@@ -99,7 +99,7 @@ static int Neutral_element_removal (Node *node)
 
         if (Is_given_value_node (node->right, 1))
         {
-            if (GET_OP (node) == OP_MUL || GET_OP (node) == OP_DEG || GET_OP (node) == OP_SUB)
+            if (GET_OP (node) == OP_MUL || GET_OP (node) == OP_DEG || GET_OP (node) == OP_DIV)
             {
                 Node *node_cpy = Tree_copy (node->left);
                 My_swap (node, node_cpy, sizeof (Node));
@@ -120,7 +120,7 @@ static int Neutral_element_removal (Node *node)
                 return 1;
             }
 
-            if (GET_OP (node) == OP_MUL || GET_OP (node) == OP_DEG || GET_OP (node) == OP_SUB)
+            if (GET_OP (node) == OP_MUL || GET_OP (node) == OP_DEG || GET_OP (node) == OP_DIV)
             {
                 Free_differentiator_nodes_data (node->left);
                 Free_differentiator_nodes_data (node->right);

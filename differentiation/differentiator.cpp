@@ -38,6 +38,13 @@ static int Search_name_object (Node *node, Name_table *name_table);
 static Node *Taylor_term (FILE *fdout, const Differentiator_struct *expression, 
                                         const char* var, const int order);
 
+
+static int Draw_function_graph (FILE *fdout, const Tree *math_expression, 
+                                Name_table *name_table, const char *var);
+
+static int Creat_func_data_file (const Tree *math_expression, Name_table *name_table, 
+                                                                    const int id_var);
+
 static int Print_modes ();
 
 
@@ -87,7 +94,7 @@ int Differentiator_struct_dtor (Differentiator_struct *expression)
 
 //======================================================================================
 
-int Expression_processing (const Differentiator_struct *expression)
+int Expression_processing (Differentiator_struct *expression)
 {
     assert (expression != nullptr && "expression is nullptr");
     
@@ -125,7 +132,7 @@ int Expression_processing (const Differentiator_struct *expression)
             if (res_scan != 2)
                 return PROCESS_ERROR (PROCESS_EXPRESSION_ERR, 
                                      "Reading input parameters, res_scan = %d\n"
-                                      "order = %d, var = %s", cur_variable);
+                                      "order = %d, var = %s", res_scan, order, cur_variable);
 
             Differentiate_expression (tex, &expression->tree, &tmp_expression, cur_variable, order, PRINT);
         }   
@@ -142,7 +149,7 @@ int Expression_processing (const Differentiator_struct *expression)
             printf ("Calculation result: %.5lg\n", res);
         } 
 
-        else if (!strcmpi ("Taylor", cur_cmd) || !strcmpi ("T", cur_cmd))     
+        else if (!strcmpi ("Taylor", cur_cmd) || !strcmpi ("Tay", cur_cmd))     
         {                                       
             int order = 0;
             char cur_variable[Max_command_buffer] = "";
@@ -153,9 +160,24 @@ int Expression_processing (const Differentiator_struct *expression)
             if (res_scan != 2)
                 return PROCESS_ERROR (PROCESS_EXPRESSION_ERR, 
                                      "Reading input parameters, res_scan = %d\n"
-                                      "order = %d, var = %s", cur_variable);
+                                      "order = %d, var = %s", res_scan, order, cur_variable);
 
             Taylor_expansion (tex, expression, &tmp_expression, cur_variable, order, PRINT);
+        } 
+
+        else if (!strcmpi ("Tangent_equation", cur_cmd) || !strcmpi ("Tan", cur_cmd))     
+        {                                       
+            char cur_variable[Max_command_buffer] = "";
+
+            printf ("Enter the variable to tangent search.\n"); 
+            int res_scan = scanf ("%s", cur_variable);
+
+            if (res_scan != 1)
+                return PROCESS_ERROR (PROCESS_EXPRESSION_ERR, 
+                                     "Reading input parameters, res_scan = %d\n"
+                                      "var = %s", res_scan, cur_variable);
+
+            Tangent_equation (tex, expression, &tmp_expression, cur_variable, PRINT);            
         } 
 
         else if (!strcmpi ("Modes", cur_cmd) || !strcmpi ("M", cur_cmd))     
@@ -175,6 +197,8 @@ int Expression_processing (const Differentiator_struct *expression)
     if (Tree_dtor (&tmp_expression))
         return PROCESS_ERROR (TREE_DTOR_ERR, "Dtor tree tmp_expression\n");
 
+    Draw_function_graph (tex, &expression->tree, &expression->name_table, "x");
+
     Latex_finish (tex);
     return 0;
 }
@@ -188,9 +212,10 @@ static int Print_modes ()
     printf ("1. [Di]fferentiate. Differentiate initial math expression.\n");
     printf ("2. [Dr]aw. Draws last transformation expression tree.\n");
     printf ("3. [C]alculate. Dot last transformation expression calculation.\n");
-    printf ("4. [T]aylor. Print Taylor polynomial with given variable initial expression.\n");
-    printf ("5. [M]odes. Print mode List.\n");
-    printf ("6. [E]xit. Finish the processing.\n");
+    printf ("4. [Tay]aylor. Print Taylor polynomial with given variable initial expression.\n");
+    printf ("5. [Tan]gent. Print Tangent_equation with given variable initial expression.\n");
+    printf ("6. [M]odes. Print mode List.\n");
+    printf ("7. [E]xit. Finish the processing.\n");
 
     printf ("\n");
 
@@ -227,16 +252,17 @@ int Differentiate_expression (FILE* fdout, const Tree *math_expression, Tree *di
     assert (dif_expression  != nullptr && "dif expresion   is nullptr");
     assert (var             != nullptr && "var is nullptr");
     assert (fdout           != nullptr && "assert is nullptr");
-
+    
     if (derivative_number < 0)
     {
         PROCESS_ERROR (DIFFERENT_EXPRESSION_ERR, "Derivative of negative order\n");
         return DIFFERENT_EXPRESSION_ERR;
     }
+    
+    if (!Check_nullptr (dif_expression->root))
+        Free_differentiator_nodes_data (dif_expression->root);
 
-    Free_differentiator_nodes_data (dif_expression->root);
     dif_expression->root = Tree_copy (math_expression->root);
-   
     Simplifier_expression (fdout, dif_expression);
 
     if (print_mode)
@@ -314,13 +340,13 @@ static Node* Differentiate_node (const Node* node, const char *var)
                     if (IS_VAL (LEFT) && IS_VAL (RIGHT))
                         return CREATE_VAL (0);
 
-                    else if (IS_VAL (LEFT) && IS_FUNC (RIGHT))
+                    else if (IS_VAL (LEFT) && IS_NOT_VAL (RIGHT))
                         return MUL (DEG (CL, CR), MUL (LOG (CL), DR));
 
-                    else if (IS_FUNC (LEFT) && IS_VAL (RIGHT))
+                    else if (IS_NOT_VAL (LEFT) && IS_VAL (RIGHT))
                         return MUL (CR, MUL (DEG (CL, CREATE_VAL (GET_VAL (RIGHT) - 1)), DL));
                     
-                    else if (IS_FUNC (LEFT) && IS_FUNC (RIGHT))
+                    else if (IS_NOT_VAL (LEFT) && IS_NOT_VAL (RIGHT))
                         return DIF (DEG (CREATE_VAL (exp (1)), MUL (LOG (CL), CR)));
                     
                     else
@@ -374,7 +400,7 @@ int Taylor_expansion (FILE* fdout, const Differentiator_struct *expression, Tree
         taylor_expansion->root = Create_operation_node (OP_ADD, taylor_expansion->root, next_term);
     }
 
-    Simplifier_expression (fdout, taylor_expansion, PRINT);
+    Simplifier_expression (fdout, taylor_expansion);
     
     if (print_mode)
     {
@@ -402,8 +428,7 @@ static Node *Taylor_term (FILE *fdout, const Differentiator_struct *expression,
         return nullptr;
     }
     
-    Differentiate_expression (fdout, &expression->tree, &tmp_expression,
-                              var, order, NOPRINT);
+    Differentiate_expression (fdout, &expression->tree, &tmp_expression, var, order);
     
     double res = Calc_expression (tmp_expression.root, &expression->name_table);
     res /= Factorial (order);
@@ -417,6 +442,7 @@ static Node *Taylor_term (FILE *fdout, const Differentiator_struct *expression,
         PROCESS_ERROR (TAYLOR_ERR, "cannot be decomposed into a variable \'%s\'\n", var);
         return nullptr;
     }
+
     double dot_val = *((double*) expression->name_table.objects[id_var].data);
     Node *dot_node = Create_value_node (dot_val, nullptr, nullptr);    
 
@@ -432,6 +458,53 @@ static Node *Taylor_term (FILE *fdout, const Differentiator_struct *expression,
     }
 
     return res_node;
+}
+
+//======================================================================================
+
+int Tangent_equation (FILE* fdout, const Differentiator_struct *expression, Tree *tangent_equation,
+                                                              const char* var, const int print_mode)
+{
+    assert (expression       != nullptr && "expression is nullptr");
+    assert (tangent_equation != nullptr && "tangent_equation is nullptr");
+    assert (var              != nullptr && "var is nullptr");
+    assert (fdout            != nullptr && "assert is nullptr");
+
+    if (print_mode)
+    {
+        Print_latex_message (fdout, "\\textbf{Найдем уравнение касательной"
+                                    " относительно \'%s\' в заданных точках выражения:}\n", var);
+        Print_latex_tree (fdout, &expression->tree);
+    }
+    
+
+    Differentiate_expression (fdout, &expression->tree, tangent_equation, var, 1);
+
+    
+    Node *res_in_dot = CREATE_VAL (Calc_expression (expression->tree.root, &expression->name_table));
+
+    int id_var = Find_id_object (&expression->name_table, var);
+    if (id_var == Not_init_object)
+        return PROCESS_ERROR (TANGENT_EQUATION_ERR, "cannot be decomposed into a variable \'%s\'\n", var);
+    
+    double dot_val = *((double*) expression->name_table.objects[id_var].data);
+
+    Node *tmp_node   = Create_operation_node (OP_SUB, Create_variable_node (var,     nullptr, nullptr),
+                                                      Create_value_node    (dot_val, nullptr, nullptr));
+
+    tangent_equation->root = Create_operation_node (OP_MUL, tangent_equation->root, tmp_node);
+    tangent_equation->root = Create_operation_node (OP_ADD, tangent_equation->root, res_in_dot);
+
+
+    Simplifier_expression (fdout, tangent_equation);
+    
+    if (print_mode)
+    {
+        Print_latex_message (fdout, "Касательная по переменой \'%s\' в заданных точках:\n", var);
+        Print_latex_tree (fdout, tangent_equation);
+    }
+
+    return 0;
 }
 
 //======================================================================================
@@ -517,6 +590,73 @@ double Calc_expression (const Node *node, const Name_table *name_table)
     }
 
     return res_val;
+}
+
+//======================================================================================
+
+static int Draw_function_graph (FILE *fdout, const Tree *math_expression, 
+                                Name_table *name_table, const char *var)
+{
+    assert (fdout           != nullptr && "fdout is nullptr");
+    assert (name_table      != nullptr && "name table is nullptr");
+    assert (math_expression != nullptr && "name table is nullptr");
+
+    int id_var = Find_id_object (name_table, var);
+    if (id_var == Not_init_object)
+        return 0;
+
+    if (Creat_func_data_file (math_expression, name_table, id_var))
+        return PROCESS_ERROR (CREAT_FUNC_DATA_ERR, "The file for writing function values did not creat\n");
+
+    FILE *gnu_cmd  = Open_file_ptr ("gnu_cmd.gnu", "w");
+    if (Check_nullptr (gnu_cmd))
+        return PROCESS_ERROR (CREAT_FUNC_DATA_ERR, "The file for writing function values did not Open\n");
+
+    fprintf (gnu_cmd, "set xrange [-10:10]\n");
+    fprintf (gnu_cmd, "set yrange [-100:100]\n");
+    fprintf (gnu_cmd, "set terminal png\n");
+    fprintf (gnu_cmd, "set output \"func_graph.png\"\n");
+    fprintf (gnu_cmd, "plot \"data.txt\" title \"function\" with lines\n");
+    fprintf (gnu_cmd, "exit\n");
+
+
+    if (Close_file_ptr (gnu_cmd))
+        return PROCESS_ERROR (CREAT_FUNC_DATA_ERR, "The file for writing function values did not Close\n");    
+
+    if (system ("gnuplot gnu_cmd.gnu"))
+        return PROCESS_ERROR (USE_GNUPLOT_ERR, "Error creating image using gnuplot\n");
+
+    Print_latex_message (fdout, "\\includegraphics{func_graph}\n");
+    Print_latex_message (fdout, "\\\\\\includegraphics{sadcat}\n");
+
+    return 0;
+}
+
+//======================================================================================
+
+static int Creat_func_data_file (const Tree *math_expression, Name_table *name_table, const int id_var)
+{
+    assert (name_table      != nullptr && "name table is nullptr");
+    assert (math_expression != nullptr && "name table is nullptr");
+
+    FILE* fp_data = Open_file_ptr ("data.txt", "w");
+    if (Check_nullptr (fp_data))
+        return PROCESS_ERROR (CREAT_FUNC_DATA_ERR, "The file for writing function values did not Open\n");
+
+
+    double original_val = *((double*) name_table->objects[id_var].data);
+    for (int cv = -Image_width; cv <= Image_width; cv++)
+    {
+        *((double*) name_table->objects[id_var].data) = cv;
+        fprintf (fp_data, "%d %.8lg\n", cv, Calc_expression (math_expression->root, name_table));
+    }
+
+    *((double*) name_table->objects[id_var].data) = original_val;
+
+    if (Close_file_ptr (fp_data))
+        return PROCESS_ERROR (CREAT_FUNC_DATA_ERR, "The file for writing function values did not Close\n");
+
+    return 0;
 }
 
 //======================================================================================
